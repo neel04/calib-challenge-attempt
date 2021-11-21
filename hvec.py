@@ -7,13 +7,11 @@ import numpy as np
 def execute_shell(command):
     os.system(command)
 
-execute_shell("git clone https://github.com/commaai/calib_challenge.git")
-
 def hevc_to_frames(sample_num, out_folder):
   if not Path(f'./{out_folder}').exists():
     execute_shell(f'mkdir {out_folder}')
 
-  vidcap = cv2.VideoCapture(f'./calib_challenge/labeled/{sample_num}.hevc')   # sample_num --> int
+  vidcap = cv2.VideoCapture(f'/content/calib-challenge-attempt/calib_challenge/labeled/{sample_num}.hevc')   # sample_num --> int
 
   success, image = vidcap.read()
   

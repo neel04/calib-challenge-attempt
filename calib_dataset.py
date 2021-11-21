@@ -1,9 +1,7 @@
 # imports
-import os
 import torch
 from torchvision.io import read_image
 import numpy as np
-import matplotlib.pyplot as plt
 import glob
 
 
@@ -24,7 +22,7 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
 
 
     def get_target(self, img_path, video_num) -> list:
-        target_file = open(f"./calib_challenge/labeled/{video_num}.txt", "r")
+        target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
         target_idx = int(img_path.split("/")[-1].split(".")[0])
 
         # take target_idx'th line number and convert targets to a list
