@@ -32,6 +32,5 @@ print(np.float64(tgt))
 plt.plot(img)
 
 #======CLEANUP===========
-'''
-execute_shell('rm -rf /content/calib-challenge-attempt/data*') #deletes data directories, for committing
-'''
+#Before Committing
+# rm -rf ./data*
