@@ -1,6 +1,6 @@
 # imports
 import torch
-from torchvision.io import read_image
+import cv2
 import numpy as np
 import glob
 
@@ -16,8 +16,7 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
 
     def preprocess(self, image):
         # split image into 2 parts, just covering the hood of the Car
-        image = read_image(image)
-        print(image.shape)
+        image = cv2.imread(image, 0) / 255
         return image
 
 

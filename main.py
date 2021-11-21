@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 
 from calib_dataset import CalibrationImageDataset
 from torch.utils.data import DataLoader
+from torchvision.utils import save_image
 from hvec import execute_shell, hevc_to_frames
-
-execute_shell('rm -rf ./data*')
 
 if not os.path.isdir('/content/calib-challenge-attempt/calib-challenge'):
     #Should be used on a fresh run
@@ -21,15 +20,14 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
     for i in tqdm(range(0,5)):
         hevc_to_frames(i, f'./data_{i}')
 
-print(f'\nData Processing Complete! HVEC --> JPG')
+print(f'\nData Processing Complete! HVEC --> JPG\n')
 
 #PyTorch Dataset creation
 test_ds = CalibrationImageDataset('/content/calib-challenge-attempt/')
 train_dataloader = DataLoader(test_ds)
-
 img, tgt = next(iter(train_dataloader))
-print(np.float64(tgt))
-plt.plot(img)
+
+save_image(img.float(), f'./sanity_check.jpg')
 
 #======CLEANUP===========
 #Before Committing
