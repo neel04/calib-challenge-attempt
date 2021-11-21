@@ -20,7 +20,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
     for i in tqdm(range(0,5)):
         hevc_to_frames(i, f'./data_{i}')
 
-print(f'\nData Processing Complete! HVEC --> JPG\n')
+print(f'\n=====Data Processing Complete, All HVEC converted to JPG\n========')
 
 #PyTorch Dataset creation
 test_ds = CalibrationImageDataset('/content/calib-challenge-attempt/')
@@ -28,6 +28,8 @@ train_dataloader = DataLoader(test_ds)
 img, tgt = next(iter(train_dataloader))
 
 save_image(img.float(), f'./sanity_check.jpg')
+
+print('total samples in train_dataloader:', len([tgt for img, tgt in iter(train_dataloader)]))
 
 #======CLEANUP===========
 #Before Committing
