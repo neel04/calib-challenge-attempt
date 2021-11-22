@@ -8,16 +8,22 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
     def __init__(self, root_folder, files:list):  # ./
         self.root_folder = root_folder
         self.target = []
-        self.len = 2000
         self.files = files #list of all the files needed
 
     def __len__(self):
-        return self.len
+        temp = []
+        for i in self.files:
+            temp.append(len(glob.glob(f'{self.root_folder}data_{i}/*')))
+
+        return sum(temp)
 
     def preprocess(self, image):
         # split image into 2 parts, just covering the hood of the Car
-        img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2GRAY)        
-        return img
+        img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2GRAY)
+        height, width, channels = img.shape + (1,)
+        croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
+        #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
+        return croppedImage / 255
 
 
     def get_target(self, img_path, video_num) -> list:

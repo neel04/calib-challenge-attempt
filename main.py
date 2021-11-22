@@ -3,7 +3,7 @@ from tqdm import tqdm
 import os
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+import random
 
 from calib_dataset import CalibrationImageDataset
 from torch.utils.data import DataLoader
@@ -32,16 +32,7 @@ train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE)              #Mak
 val_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4])
 val_dataloader = DataLoader(val_ds, batch_size=BATCH_SIZE)              #Making A dataloader from the fist 4 hvecs
 
-#print(f'\nTrain Samples: {len([tgt for img,tgt in train_dataloader])}\nVal Samples: {len([tgt for img, tgt in val_dataloader])}')
-
-for img,tgt in train_dataloader:
-    print(f'shape: {img[0].shape}')
-    save_image(img[0].float(), './sample.jpg')
-    break
-
-for img, tgt in val_dataloader:
-    cv2.imwrite('./test_val.jpg', img[0])
-    break
+print(f'\nTrain Samples: {len(train_dataloader)}\nVal Samples: {len(val_dataloader)}\nBatch Size: {BATCH_SIZE}')
 
 #======CLEANUP===========
 #Before Committing
