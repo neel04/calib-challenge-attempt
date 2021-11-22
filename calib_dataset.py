@@ -14,7 +14,6 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
         temp = []
         for i in self.files:
             temp.append(len(glob.glob(f'{self.root_folder}data_{i}/*')))
-
         return sum(temp)
 
     def preprocess(self, image):
