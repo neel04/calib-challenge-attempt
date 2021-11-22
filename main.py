@@ -1,6 +1,7 @@
 #@author: neel04
 from tqdm import tqdm
 import os
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -20,16 +21,27 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
     for i in tqdm(range(0,5)):
         hevc_to_frames(i, f'./data_{i}')
 
-print(f'\n=====Data Processing Complete, All HVEC converted to JPG\n========')
+print(f'\nData Processing Complete! HVEC --> JPG')
+
+BATCH_SIZE = 2
 
 #PyTorch Dataset creation
-test_ds = CalibrationImageDataset('/content/calib-challenge-attempt/')
-train_dataloader = DataLoader(test_ds)
-img, tgt = next(iter(train_dataloader))
+train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
+train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE)              #Making A dataloader from the fist 4 hvecs
 
-save_image(img.float(), f'./sanity_check.jpg')
+val_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4])
+val_dataloader = DataLoader(val_ds, batch_size=BATCH_SIZE)              #Making A dataloader from the fist 4 hvecs
 
-print('total samples in train_dataloader:', len([tgt for img, tgt in iter(train_dataloader)]))
+#print(f'\nTrain Samples: {len([tgt for img,tgt in train_dataloader])}\nVal Samples: {len([tgt for img, tgt in val_dataloader])}')
+
+for img,tgt in train_dataloader:
+    print(f'shape: {img[0].shape}')
+    save_image(img[0].float(), './sample.jpg')
+    break
+
+for img, tgt in val_dataloader:
+    cv2.imwrite('./test_val.jpg', img[0])
+    break
 
 #======CLEANUP===========
 #Before Committing

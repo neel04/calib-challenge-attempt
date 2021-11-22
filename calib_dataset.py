@@ -4,20 +4,20 @@ import cv2
 import numpy as np
 import glob
 
-
 class CalibrationImageDataset(torch.utils.data.IterableDataset):
-    def __init__(self, root_folder):  # ./
+    def __init__(self, root_folder, files:list):  # ./
         self.root_folder = root_folder
         self.target = []
         self.len = 2000
+        self.files = files #list of all the files needed
 
     def __len__(self):
         return self.len
 
     def preprocess(self, image):
         # split image into 2 parts, just covering the hood of the Car
-        image = cv2.imread(image, 0) / 255
-        return image
+        img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2GRAY)        
+        return img
 
 
     def get_target(self, img_path, video_num) -> list:
@@ -31,7 +31,7 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
         return [np.float64(num.replace("\n", "")) for num in target_pair.split()]
 
     def __iter__(self):
-        for video_num in range(0, 5):
+        for video_num in self.files:
             for image_path in glob.glob(f"{self.root_folder}data_{video_num}/*.jpg"):
                 if not np.all(np.isnan(self.get_target(image_path, video_num))):
                     yield self.preprocess(image_path), self.get_target(image_path, video_num)
