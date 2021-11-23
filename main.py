@@ -6,7 +6,8 @@ import numpy as np
 import random
 
 from calib_dataset import CalibrationImageDataset
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, BufferedShuffleDataset
+from matplotlib import pyplot as plt
 from torchvision.utils import save_image
 from hvec import execute_shell, hevc_to_frames
 
@@ -27,12 +28,26 @@ BATCH_SIZE = 2
 
 #PyTorch Dataset creation
 train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
-train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE)              #Making A dataloader from the fist 4 hvecs
+train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE) #Making A dataloader from the fist 4 hvecs
 
 val_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4])
 val_dataloader = DataLoader(val_ds, batch_size=BATCH_SIZE)              #Making A dataloader from the fist 4 hvecs
 
-print(f'\nTrain Samples: {len(train_dataloader)}\nVal Samples: {len(val_dataloader)}\nBatch Size: {BATCH_SIZE}')
+#print(f'\nTrain Samples: {len(train_dataloader)}\nVal Samples: {len(val_dataloader)}\nBatch Size: {BATCH_SIZE}')
+
+img_1, tgt_1 = next(iter(train_dataloader))
+save_image(img_1[0], f'./train_sample.jpg')
+
+plt.plot(img_1[0])
+print(img_1[0].shape)
+
+c = 0
+
+for i, tgt in tqdm(iter(train_dataloader)):
+    c += 1
+    save_image(i[0], f'./l{c}.jpg')
+    if c == 10: 
+        break
 
 #======CLEANUP===========
 #Before Committing

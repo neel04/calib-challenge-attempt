@@ -2,9 +2,10 @@
 import torch
 import cv2
 import numpy as np
+import random
 import glob
 
-class CalibrationImageDataset(torch.utils.data.IterableDataset):
+class CalibrationImageDataset(torch.utils.data.IterableDataset): #torch.utils.data.IterableDataset
     def __init__(self, root_folder, files:list):  # ./
         self.root_folder = root_folder
         self.target = []
@@ -36,7 +37,12 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
         return [np.float64(num.replace("\n", "")) for num in target_pair.split()]
 
     def __iter__(self):
+        random.shuffle(self.files)
+
         for video_num in self.files:
-            for image_path in glob.glob(f"{self.root_folder}data_{video_num}/*.jpg"):
+            src = glob.glob(f"{self.root_folder}data_{video_num}/*.jpg")
+            random.shuffle(src)
+
+            for image_path in src:
                 if not np.all(np.isnan(self.get_target(image_path, video_num))):
                     yield self.preprocess(image_path), self.get_target(image_path, video_num)
