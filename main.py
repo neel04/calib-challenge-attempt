@@ -1,15 +1,20 @@
 #@author: neel04
+# General
 from tqdm import tqdm
 import os
 import cv2
 import numpy as np
 import random
 
-from calib_dataset import CalibrationImageDataset
+# Torch Imports
 from torch.utils.data import DataLoader, BufferedShuffleDataset
 from matplotlib import pyplot as plt
 from torchvision.utils import save_image
+
+# File Imports
 from hvec import execute_shell, hevc_to_frames
+from network import Net
+from calib_dataset import CalibrationImageDataset
 
 if not os.path.isdir('/content/calib-challenge-attempt/calib-challenge'):
     #Should be used on a fresh run
@@ -22,7 +27,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
     for i in tqdm(range(0,5)):
         hevc_to_frames(i, f'./data_{i}')
 
-print(f'\nData Processing Complete! HVEC --> JPG')
+print(f'\nData Processing Complete! HVEC --> JPG\n')
 
 BATCH_SIZE = 2
 
@@ -37,6 +42,9 @@ val_dataloader = DataLoader(val_ds, batch_size=BATCH_SIZE)              #Making 
 
 img_1, tgt_1 = next(iter(train_dataloader))
 save_image(img_1[0], f'./train_sample.jpg')
+
+my_nn = Net()
+print('Model Architecture:\n',my_nn, end='\n')
 
 #======CLEANUP===========
 #Before Committing
