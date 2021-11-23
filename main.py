@@ -38,17 +38,6 @@ val_dataloader = DataLoader(val_ds, batch_size=BATCH_SIZE)              #Making 
 img_1, tgt_1 = next(iter(train_dataloader))
 save_image(img_1[0], f'./train_sample.jpg')
 
-plt.plot(img_1[0])
-print(img_1[0].shape)
-
-c = 0
-
-for i, tgt in tqdm(iter(train_dataloader)):
-    c += 1
-    save_image(i[0], f'./l{c}.jpg')
-    if c == 10: 
-        break
-
 #======CLEANUP===========
 #Before Committing
 # rm -rf ./data*
