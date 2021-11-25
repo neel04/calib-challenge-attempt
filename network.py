@@ -12,38 +12,45 @@ class CalibNet(pl.LightningModule):
         self.input_size = input_size
         self.output_size = output_size
         self.hidden_size = hidden_size
-        self.BATCH_SIZE = batch_size
+        self.batch_size = batch_size
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(256*4*4, self.hidden_size)
+        self.fc1 = nn.Linear(5376, self.hidden_size)
         self.fc2 = nn.Linear(self.hidden_size, self.output_size)
-        
+        self.relu = torch.nn.ReLU()
+        self.maxpool1 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
+        self.maxpool2 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
+        self.maxpool3 = torch.nn.MaxPool2d(stride=5, kernel_size=2)
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.relu(x)
-        x = self.maxpool(x)
+        x = self.maxpool1(x)
         x = self.conv2(x)
         x = self.relu(x)
-        x = self.maxpool(x)
+        x = self.maxpool2(x)
         x = self.conv3(x)
         x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.conv4(x)
+        x = self.maxpool3(x)
+
+        gate = x.view(-1, 5376)
+
+        x = self.fc1(gate)
         x = self.relu(x)
-        x = self.maxpool(x)
-        x = x.view(-1, 256*4*4)
         x = self.fc1(x)
-        x = self.relu(x)
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
+
+        y = self.fc1(gate)
+        y = self.relu(x)
+        y = self.fc2(x)
+        return x, y
     
     def training_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
         y_hat_1, y_hat_2 = self.forward(x)
-        loss = MSELoss(y_hat_1, y_1) + MSELoss(y_hat_2, y_2)
+
+        criterion = nn.MSELoss()
+        loss = criterion(y_hat_1, y_1) + criterion(y_hat_2, y_2)
         tensorboard_logs = {'train_loss': loss}
         self.log(f'train loss: {loss}')
         return {'loss': loss, 'log': tensorboard_logs}
@@ -54,7 +61,8 @@ class CalibNet(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
         y_hat_1, y_hat_2 = self.forward(x)
-        mape_loss = self.MAPELoss(y_hat_1, y_1) + self.MAPELoss(y_hat_2, y_2)
+        criterion = self.MAPELoss()
+        mape_loss = criterion(y_hat_1, y_1) + criterion(y_hat_2, y_2)
 
         tensorboard_logs = {'MAPE:':mape_loss}
         return {'val_loss': mape_loss, 'log':tensorboard_logs}
@@ -71,10 +79,11 @@ class CalibNet(pl.LightningModule):
     def train_dataloader(self):
         #Making A dataloader from the fist 4 hvecs
         train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
-        train_dataloader = (train_ds, batch_size=self.BATCH_SIZE) #Making A dataloader from the fist 4 hvecs
+        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size) #Making A dataloader from the fist 4 hvecs
         return train_dataloader
     
     def val_dataloader(self):
       #Making A dataloader from the last file
       val_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4])
-      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.BATCH_SIZE)
+      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size)
+      return val_dataloader

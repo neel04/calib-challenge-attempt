@@ -2,6 +2,7 @@
 # General
 from tqdm import tqdm
 import os
+from torchinfo import summary
 
 # Torch Imports
 from torch.utils.data import DataLoader
@@ -29,15 +30,19 @@ print(f'\nData Processing Complete! HVEC --> JPG\n')
 BATCH_SIZE = 2
 
 train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
-train_dataloader = DataLoader(train_ds, batch_size=self.BATCH_SIZE) #Making A dataloader from the fist 4 hvecs
+train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE) #Making A dataloader from the fist 4 hvecs
 
 #print(f'\nTrain Samples: {len(train_dataloader)}\nVal Samples: {len(val_dataloader)}\nBatch Size: {BATCH_SIZE}')
 
 img_1, tgt_1 = next(iter(train_dataloader))
 save_image(img_1[0], f'./train_sample.jpg')
+print(img_1.shape)  # torch.Size([2, 337, 1164])
 
 #Create the model and train it
-model = CalibNet(input_size=(376,1196), output_size=(2,), hidden_size=50, batch_size=BATCH_SIZE)
+model = CalibNet(input_size=(256,512), output_size=2, hidden_size=5376, batch_size=BATCH_SIZE)
+summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
+
+# Initializing Trainer
 trainer = pl.Trainer(max_epochs=10)
 trainer.fit(model)
 
