@@ -43,7 +43,7 @@ model = CalibNet(input_size=(256,512), output_size=2, hidden_size=5376, batch_si
 summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
 
 # Initializing Trainer
-trainer = pl.Trainer(max_epochs=10, accelerator='gpu', precision=16, auto_lr_find=True)
+trainer = pl.Trainer(max_epochs=10, devices=1, accelerator='gpu', auto_lr_find=True)
 trainer.fit(model)
 
 #======CLEANUP===========

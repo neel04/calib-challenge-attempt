@@ -9,6 +9,7 @@ from torch import nn
 class CalibNet(pl.LightningModule):
     def __init__(self, input_size, output_size, hidden_size, batch_size, lr):
         super(CalibNet, self).__init__()
+        self.lr = lr
         self.input_size = input_size
         self.output_size = output_size
         self.hidden_size = hidden_size
