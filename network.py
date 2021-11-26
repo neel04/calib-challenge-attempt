@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 from torch import nn
 
 class CalibNet(pl.LightningModule):
-    def __init__(self, input_size, output_size, hidden_size, batch_size):
+    def __init__(self, input_size, output_size, hidden_size, batch_size, lr):
         super(CalibNet, self).__init__()
         self.input_size = input_size
         self.output_size = output_size
@@ -73,7 +73,7 @@ class CalibNet(pl.LightningModule):
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
     
     def train_dataloader(self):
