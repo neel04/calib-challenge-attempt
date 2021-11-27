@@ -6,7 +6,7 @@ from torchinfo import summary
 
 # Torch Imports
 from torch.utils.data import DataLoader
-from torchvision.utils import save_image
+from pytorch_lightning.loggers import TensorBoardLogger
 import pytorch_lightning as pl
 
 # File Imports
@@ -39,11 +39,11 @@ print(f'Train Samples: {len(train_dataloader)}\nBatch Size: {BATCH_SIZE}\n')
 #print(img_1.shape)  # torch.Size([2, 337, 1164])
 
 #Create the model and train it
-model = CalibNet(input_size=(256,512), output_size=1, hidden_size=1024, batch_size=BATCH_SIZE, lr=0.001) #Adjust Hidden Size
+model = CalibNet(input_size=(256,512), output_size=1, hidden_size=512, batch_size=BATCH_SIZE, lr=0.001) #Adjust Hidden Size
 summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
 
 # Initializing Trainer
-trainer = pl.Trainer(max_epochs=10, devices=1, accelerator='cpu', auto_lr_find=True) #GPU
+trainer = pl.Trainer(max_epochs=10, devices=1, accelerator='cpu', auto_lr_find=True, logger=TensorBoardLogger('./tb_logs',name='logs', name='CalibNet')) #GPU
 
 trainer.fit(model)
 

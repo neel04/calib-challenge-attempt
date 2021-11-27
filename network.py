@@ -18,12 +18,12 @@ class CalibNet(pl.LightningModule):
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(4608, self.hidden_size)
+        self.fc1 = nn.Linear(8192, self.hidden_size)
         self.fc2 = nn.Linear(self.hidden_size, self.output_size)
         self.relu = torch.nn.ReLU()
         self.maxpool1 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
         self.maxpool2 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
-        self.maxpool3 = torch.nn.MaxPool2d(stride=5, kernel_size=3)
+        self.maxpool3 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -38,14 +38,14 @@ class CalibNet(pl.LightningModule):
 
         gate = x.view(-1)
 
-        x = self.fc1(gate)
-        x = self.relu(x)
-        x = self.fc2(x)
+        z = self.fc1(gate)
+        z = self.relu(z)
+        z = self.fc2(z)
 
         y = self.fc1(gate)
-        y = self.relu(x)
-        y = self.fc2(x)
-        return x, y
+        y = self.relu(y)
+        y = self.fc2(y)
+        return z, y
     
     def training_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
