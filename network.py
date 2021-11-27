@@ -40,7 +40,7 @@ class CalibNet(pl.LightningModule):
 
         x = self.fc1(gate)
         x = self.relu(x)
-        x = self.fc1(x)
+        x = self.fc2(x)
 
         y = self.fc1(gate)
         y = self.relu(x)
