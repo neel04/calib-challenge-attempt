@@ -5,6 +5,7 @@ import torch
 from torch.nn.modules.loss import MSELoss
 import pytorch_lightning as pl
 from torch import nn
+import nonechucks as nc
 
 class CalibNet(pl.LightningModule):
     def __init__(self, input_size, output_size, hidden_size, batch_size, lr):
@@ -17,12 +18,12 @@ class CalibNet(pl.LightningModule):
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(5376, self.hidden_size)
+        self.fc1 = nn.Linear(4608, self.hidden_size)
         self.fc2 = nn.Linear(self.hidden_size, self.output_size)
         self.relu = torch.nn.ReLU()
         self.maxpool1 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
         self.maxpool2 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
-        self.maxpool3 = torch.nn.MaxPool2d(stride=5, kernel_size=2)
+        self.maxpool3 = torch.nn.MaxPool2d(stride=5, kernel_size=3)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -35,7 +36,7 @@ class CalibNet(pl.LightningModule):
         x = self.relu(x)
         x = self.maxpool3(x)
 
-        gate = x.view(-1, 5376)
+        gate = x.view(-1, 4608)
 
         x = self.fc1(gate)
         x = self.relu(x)
@@ -77,14 +78,19 @@ class CalibNet(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
     
+    def collate_fn(self, batch):
+        print(batch)
+        batch = list(filter(lambda x: x is not None, batch))
+        return torch.utils.data.dataloader.default_collate(batch)
+
     def train_dataloader(self):
         #Making A dataloader from the fist 4 hvecs
-        train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
-        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=4) #Making A dataloader from the fist 4 hvecs
+        train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3]))
+        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=4, collate_fn=self.collate_fn) #Making A dataloader from the fist 4 hvecs
         return train_dataloader
     
     def val_dataloader(self):
       #Making A dataloader from the last file
-      val_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4])
-      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=4)
+      val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4]))
+      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=4, collate_fn=self.collate_fn)
       return val_dataloader

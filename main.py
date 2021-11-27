@@ -34,12 +34,12 @@ train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True) #Ma
 
 print(f'Train Samples: {len(train_dataloader)}\nBatch Size: {BATCH_SIZE}\n')
 
-img_1, tgt_1 = next(iter(train_dataloader))
-save_image(img_1[0], f'./train_sample.jpg')
-print(img_1.shape)  # torch.Size([2, 337, 1164])
+#img_1, tgt_1 = next(iter(train_dataloader))
+#save_image(img_1[0], f'./train_sample.jpg')
+#print(img_1.shape)  # torch.Size([2, 337, 1164])
 
 #Create the model and train it
-model = CalibNet(input_size=(256,512), output_size=2, hidden_size=5376, batch_size=BATCH_SIZE, lr=0.001)
+model = CalibNet(input_size=(256,512), output_size=1, hidden_size=512, batch_size=BATCH_SIZE, lr=0.001)
 summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
 
 # Initializing Trainer
