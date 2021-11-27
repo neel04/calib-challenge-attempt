@@ -39,7 +39,7 @@ print(f'Train Samples: {len(train_dataloader)}\nBatch Size: {BATCH_SIZE}\n')
 #print(img_1.shape)  # torch.Size([2, 337, 1164])
 
 #Create the model and train it
-model = CalibNet(input_size=(256,512), output_size=1, hidden_size=4608, batch_size=BATCH_SIZE, lr=0.001)
+model = CalibNet(input_size=(256,512), output_size=1, hidden_size=1024, batch_size=BATCH_SIZE, lr=0.001) #Adjust Hidden Size
 summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
 
 # Initializing Trainer
