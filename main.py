@@ -39,11 +39,12 @@ print(f'Train Samples: {len(train_dataloader)}\nBatch Size: {BATCH_SIZE}\n')
 #print(img_1.shape)  # torch.Size([2, 337, 1164])
 
 #Create the model and train it
-model = CalibNet(input_size=(256,512), output_size=1, hidden_size=512, batch_size=BATCH_SIZE, lr=0.001)
+model = CalibNet(input_size=(256,512), output_size=1, hidden_size=4608, batch_size=BATCH_SIZE, lr=0.001)
 summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
 
 # Initializing Trainer
-trainer = pl.Trainer(max_epochs=10, devices=1, accelerator='gpu', auto_lr_find=True)
+trainer = pl.Trainer(max_epochs=10, devices=1, accelerator='cpu', auto_lr_find=True) #GPU
+
 trainer.fit(model)
 
 #======CLEANUP===========

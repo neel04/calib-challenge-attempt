@@ -58,7 +58,10 @@ class CalibNet(pl.LightningModule):
         return {'loss': loss, 'log': tensorboard_logs}
 
     def MAPELoss(self, output, target):
-      return torch.mean(torch.abs((target - output) / target))  
+        print(f'target: {target.shape}\toutput: {output.view(-1).shape}')
+        print(output)
+        exit()
+        return torch.mean(torch.abs((target - output.view(-1)) / target))  
     
     def validation_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
@@ -79,18 +82,20 @@ class CalibNet(pl.LightningModule):
         return optimizer
     
     def collate_fn(self, batch):
-        print(batch)
-        batch = list(filter(lambda x: x is not None, batch))
-        return torch.utils.data.dataloader.default_collate(batch)
+        for sample in batch:  #no empty data
+            assert sample[1][0] is not None
+        
+        out = [sample for sample in batch if sample[0] is not None and (sample[1][0] or sample[1][1])]
+        return torch.utils.data.dataloader.default_collate(out)
 
     def train_dataloader(self):
         #Making A dataloader from the fist 4 hvecs
         train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3]))
-        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=4, collate_fn=self.collate_fn) #Making A dataloader from the fist 4 hvecs
+        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=0, collate_fn=self.collate_fn) #Making A dataloader from the fist 4 hvecs
         return train_dataloader
     
     def val_dataloader(self):
       #Making A dataloader from the last file
       val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4]))
-      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=4, collate_fn=self.collate_fn)
+      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=0, collate_fn=self.collate_fn)
       return val_dataloader
