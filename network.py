@@ -90,12 +90,12 @@ class CalibNet(pl.LightningModule):
 
     def train_dataloader(self):
         #Making A dataloader from the fist 4 hvecs
-        train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3]))
+        train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,4,3]))
         train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=0, collate_fn=self.collate_fn) #Making A dataloader from the fist 4 hvecs
         return train_dataloader
     
     def val_dataloader(self):
       #Making A dataloader from the last file
-      val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4]))
+      val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[2]))  #2 is slightly different, hence good test for generalization
       val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=0, collate_fn=self.collate_fn)
       return val_dataloader
