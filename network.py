@@ -36,7 +36,7 @@ class CalibNet(pl.LightningModule):
         x = self.relu(x)
         x = self.maxpool3(x)
 
-        gate = x.view(-1, 4608)
+        gate = x.view(-1)
 
         x = self.fc1(gate)
         x = self.relu(x)
