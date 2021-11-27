@@ -30,9 +30,9 @@ print(f'\nData Processing Complete! HVEC --> JPG\n')
 BATCH_SIZE = 2
 
 train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
-train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE) #Making A dataloader from the fist 4 hvecs
+train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True) #Making A dataloader from the fist 4 hvecs
 
-#print(f'\nTrain Samples: {len(train_dataloader)}\nVal Samples: {len(val_dataloader)}\nBatch Size: {BATCH_SIZE}')
+print(f'Train Samples: {len(train_dataloader)}\nBatch Size: {BATCH_SIZE}\n')
 
 img_1, tgt_1 = next(iter(train_dataloader))
 save_image(img_1[0], f'./train_sample.jpg')

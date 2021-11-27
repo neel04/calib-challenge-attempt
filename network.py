@@ -62,7 +62,7 @@ class CalibNet(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
         y_hat_1, y_hat_2 = self.forward(x)
-        criterion = self.MAPELoss()
+        criterion = self.MAPELoss
         mape_loss = criterion(y_hat_1, y_1) + criterion(y_hat_2, y_2)
 
         tensorboard_logs = {'MAPE:':mape_loss}
@@ -80,11 +80,11 @@ class CalibNet(pl.LightningModule):
     def train_dataloader(self):
         #Making A dataloader from the fist 4 hvecs
         train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
-        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size) #Making A dataloader from the fist 4 hvecs
+        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=4) #Making A dataloader from the fist 4 hvecs
         return train_dataloader
     
     def val_dataloader(self):
       #Making A dataloader from the last file
       val_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[4])
-      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size)
+      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=4)
       return val_dataloader
