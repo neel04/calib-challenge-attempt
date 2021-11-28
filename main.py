@@ -27,7 +27,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 
-BATCH_SIZE = 2
+BATCH_SIZE = 32
 
 train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
 train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True) #Making A dataloader from the fist 4 hvecs
@@ -44,7 +44,8 @@ summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
 
 # Initializing Trainer
 pl.seed_everything(69420)
-trainer = pl.Trainer(max_epochs=10, devices=1, accelerator='cpu', auto_lr_find=True, logger=TensorBoardLogger('./tb_logs', name='CalibNet')) #GPU
+trainer = pl.Trainer(max_epochs=10, gpus=1, accelerator='gpu', auto_lr_find=True, logger=TensorBoardLogger('./tb_logs', name='CalibNet'),
+                    precision=16)
 
 trainer.fit(model)
 
