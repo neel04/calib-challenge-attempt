@@ -35,4 +35,4 @@ class CalibrationImageDataset(torch.utils.data.IterableDataset):
         for video_num in range(0, 5):
             for image_path in glob.glob(f"{self.root_folder}data_{video_num}/*.jpg"):
                 if not np.all(np.isnan(self.get_target(image_path, video_num))):
-                    yield self.preprocess(image_path), self.get_target(image_path, video_num)
+                    yield self.preprocess(image_path), (self.get_target(image_path, video_num)*100) # Scaling up the targets
