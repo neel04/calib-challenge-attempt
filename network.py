@@ -54,7 +54,7 @@ class CalibNet(pl.LightningModule):
         criterion = nn.MSELoss()
         loss = criterion(y_hat_1.view(-1).float(), y_1.float()) + criterion(y_hat_2.view(-1).float(), y_2.float())
         tensorboard_logs = {'train_loss': loss}
-        self.log('train loss:', loss)                #has to log a key-value pair ==> 'train loss:', loss
+        self.log('train loss', loss, on_step=True)                #has to log a key-value pair ==> 'train loss:', loss
         return {'loss': loss, 'log': tensorboard_logs}
 
     def MAPEMetric(self, output, target):
@@ -68,11 +68,13 @@ class CalibNet(pl.LightningModule):
         mape_loss = criterion(y_hat_1.view(-1).float(), y_1.float()) + criterion(y_hat_2.view(-1).float(), y_2.float())
 
         tensorboard_logs = {'MAPE:':mape_loss}
+        self.log('validation_MAPE', tensorboard_logs, on_step=True)
         return {'val_loss': mape_loss.detach(), 'log':tensorboard_logs}
     
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
+        self.log('Epoch_End_validation', tensorboard_logs)
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
     
     def configure_optimizers(self):
