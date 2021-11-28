@@ -58,7 +58,6 @@ class CalibNet(pl.LightningModule):
         return {'loss': loss, 'log': tensorboard_logs}
 
     def MAPEMetric(self, output, target):
-        print(f'\noutput: {output.view(-1)}\ntarget: {target}')
         return torch.mean(torch.abs((target.view(-1) - output.view(-1)) / target)) * 100
     
     def validation_step(self, batch, batch_idx):
