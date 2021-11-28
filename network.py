@@ -54,20 +54,22 @@ class CalibNet(pl.LightningModule):
         criterion = nn.MSELoss()
         loss = criterion(y_hat_1, y_1) + criterion(y_hat_2, y_2)
         tensorboard_logs = {'train_loss': loss}
-        self.log(f'train loss: {loss}')
+        self.log(loss)
         return {'loss': loss, 'log': tensorboard_logs}
 
     def MAPELoss(self, output, target):
-        print(f'target: {target.shape}\toutput: {output.view(-1).shape}')
-        print(output)
-        exit()
+        print(f'\n\ntarget: {target}\toutput: {output.view(-1)}')
         return torch.mean(torch.abs((target - output.view(-1)) / target))  
     
     def validation_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
         y_hat_1, y_hat_2 = self.forward(x)
         criterion = self.MAPELoss
-        mape_loss = criterion(y_hat_1, y_1) + criterion(y_hat_2, y_2)
+        mape_loss = torch.tensor([])
+
+        for y1, y2, yhat1, yhat2 in zip(y_1, y_2, y_hat_1, y_hat_2):
+            print(f'\ny 1: {y1}\ty 2: {y2}')
+            mape_loss += (criterion(yhat1, y1) + criterion(yhat2, y2))
 
         tensorboard_logs = {'MAPE:':mape_loss}
         return {'val_loss': mape_loss, 'log':tensorboard_logs}
@@ -91,11 +93,11 @@ class CalibNet(pl.LightningModule):
     def train_dataloader(self):
         #Making A dataloader from the fist 4 hvecs
         train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,4,3]))
-        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=0, collate_fn=self.collate_fn) #Making A dataloader from the fist 4 hvecs
+        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, num_workers=0) #Making A dataloader from the fist 4 hvecs
         return train_dataloader
     
     def val_dataloader(self):
       #Making A dataloader from the last file
       val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[2]))  #2 is slightly different, hence good test for generalization
-      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=0, collate_fn=self.collate_fn)
+      val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=self.batch_size,  num_workers=0)
       return val_dataloader
