@@ -31,13 +31,13 @@ class CalibrationImageDataset(torch.utils.data.Dataset):
         # take target_idx'th line number and convert targets to a list
         with target_file as file:
             target_pair = file.readlines()[target_idx]
-
-        return [np.float64(num.replace("\n", "")) for num in target_pair.split()]
+        
+        return [np.float64(num.replace("\n", ""))*10000 for num in target_pair.split()]
 
     def __getitem__(self, index):
         image_path = self.src[index]
         video_num = int(image_path.split('/')[3][-1])
         if not np.all(np.isnan(self.get_target(image_path, video_num))):
-            return self.preprocess(image_path), (self.get_target(image_path, video_num)*100)
+            return self.preprocess(image_path), self.get_target(image_path, video_num)
         else:
             return None
