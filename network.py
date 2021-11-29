@@ -23,7 +23,7 @@ class CalibNet(pl.LightningModule):
         self.fc2 = nn.Linear(self.hidden_size, 1600)
         self.fc3 = nn.Linear(1600, 400)
         self.fc4 = nn.Linear(400, self.output_size)
-        self.relu = torch.nn.ReLU()
+        self.relu = nn.LeakyReLU
         self.bn_1 = nn.BatchNorm2d(16)
         self.bn_2 = nn.BatchNorm2d(32)
         self.bn_3 = nn.BatchNorm2d(64)
