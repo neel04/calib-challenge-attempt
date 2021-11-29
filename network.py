@@ -15,43 +15,64 @@ class CalibNet(pl.LightningModule):
         self.output_size = output_size
         self.hidden_size = hidden_size
         self.batch_size = batch_size
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(4096, self.hidden_size)
-        self.fc2 = nn.Linear(self.hidden_size, self.output_size)
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=2, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=2, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=2, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=2, stride=1, padding=1)
+        self.fc1 = nn.Linear(3584, self.hidden_size)
+        self.fc2 = nn.Linear(self.hidden_size, 1600)
+        self.fc3 = nn.Linear(1600, 400)
+        self.fc4 = nn.Linear(400, self.output_size)
         self.relu = torch.nn.ReLU()
-        self.maxpool1 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
-        self.maxpool2 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
-        self.maxpool3 = torch.nn.MaxPool2d(stride=4, kernel_size=3)
+        self.bn_1 = nn.BatchNorm2d(16)
+        self.bn_2 = nn.BatchNorm2d(32)
+        self.bn_3 = nn.BatchNorm2d(64)
+        self.bn_4 = nn.BatchNorm2d(128)
+        self.maxpool1 = torch.nn.MaxPool2d(stride=3, kernel_size=2)
+        self.maxpool2 = torch.nn.MaxPool2d(stride=3, kernel_size=2)
+        self.maxpool3 = torch.nn.MaxPool2d(stride=3, kernel_size=2)
+        self.maxpool4 = torch.nn.MaxPool2d(stride=3, kernel_size=2)
 
     def forward(self, x):
-        x = self.conv1(x)
+        x = self.bn_1(self.conv1(x))
         x = self.relu(x)
         x = self.maxpool1(x)
-        x = self.conv2(x)
+        x = self.bn_2(self.conv2(x))
         x = self.relu(x)
         x = self.maxpool2(x)
-        x = self.conv3(x)
+        x = self.bn_3(self.conv3(x))
         x = self.relu(x)
         x = self.maxpool3(x)
+        x = self.bn_4(self.conv4(x))
+        x = self.relu(x)
+        x = self.maxpool4(x)
 
         gate = x.view(x.size(0), -1)
 
         z = self.fc1(gate)
         z = self.relu(z)
         z = self.fc2(z)
+        z = self.relu(z)
+        z = self.fc3(z)
+        z = self.relu(z)
+        z = self.fc4(z)
 
         y = self.fc1(gate)
         y = self.relu(y)
         y = self.fc2(y)
+        y = self.relu(y)
+        y = self.fc3(y)
+        y = self.relu(y)
+        y = self.fc4(y)
+        y = self.relu(y)
+
         return z, y
     
     def training_step(self, batch, batch_idx):
         x, (y_1, y_2) = batch
         y_hat_1, y_hat_2 = self.forward(x)
 
-        criterion = nn.MSELoss()
+        criterion = nn.L1Loss()
         loss = criterion(y_hat_1.view(-1).float(), y_1.float()) + criterion(y_hat_2.view(-1).float(), y_2.float())
         tensorboard_logs = {'train_loss': loss}
         self.log('train loss', loss, on_step=True)                #has to log a key-value pair ==> 'train loss:', loss
