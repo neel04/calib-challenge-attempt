@@ -28,7 +28,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 
-BATCH_SIZE = 16
+BATCH_SIZE = 64
 
 train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
 train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True) #Making A dataloader from the fist 4 hvecs
