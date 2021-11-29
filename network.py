@@ -64,7 +64,6 @@ class CalibNet(pl.LightningModule):
         y = self.fc3(y)
         y = self.relu(y)
         y = self.fc4(y)
-        y = self.relu(y)
 
         return z, y
     

@@ -3,6 +3,7 @@
 from tqdm import tqdm
 import os
 from torchinfo import summary
+from pytorch_lightning.loggers import WandbLogger
 
 # Torch Imports
 from torch.utils.data import DataLoader
@@ -27,7 +28,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 train_ds = CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,2,3])
 train_dataloader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True) #Making A dataloader from the fist 4 hvecs
@@ -39,12 +40,13 @@ print(f'Train Samples: {len(train_dataloader)}\nBatch Size: {BATCH_SIZE}\n')
 #print(img_1.shape)  # torch.Size([2, 337, 1164])
 
 #Create the model and train it
-model = CalibNet(input_size=(256,512), output_size=1, hidden_size=1024, batch_size=BATCH_SIZE, lr=0.001) #Adjust Hidden Size
+model = CalibNet(input_size=(256,512), output_size=1, hidden_size=1024, batch_size=BATCH_SIZE, lr=0.01) #Adjust Hidden Size
 summary(model, input_size=(BATCH_SIZE, 1, 256, 512))
+print(model)
 
 # Initializing Trainer
-pl.seed_everything(69420)
-trainer = pl.Trainer(max_epochs=100, gpus=1, accelerator='gpu', auto_lr_find=True, logger=TensorBoardLogger('./tb_logs', name='CalibNet'),
+pl.seed_everything(420)
+trainer = pl.Trainer(max_epochs=100, gpus=1, accelerator='gpu', logger=[TensorBoardLogger('./tb_logs', name='CalibNet'), WandbLogger(project="CalibNet")],
                     precision=16)
 
 trainer.fit(model)
