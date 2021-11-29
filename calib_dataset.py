@@ -38,6 +38,6 @@ class CalibrationImageDataset(torch.utils.data.Dataset):
         image_path = self.src[index]
         video_num = int(image_path.split('/')[3][-1])
         if not np.all(np.isnan(self.get_target(image_path, video_num))):
-            return self.preprocess(image_path), self.get_target(image_path, video_num)
+            return self.preprocess(image_path), (self.get_target(image_path, video_num)*100)
         else:
             return None
