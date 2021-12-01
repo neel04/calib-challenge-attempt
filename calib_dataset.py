@@ -21,7 +21,7 @@ class CalibrationImageDataset(torch.utils.data.Dataset):
         croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
         croppedImage = cv2.resize(croppedImage, (512, 256))
         #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
-        return torch.from_numpy(np.expand_dims((croppedImage / 255), 0)).float()
+        return torch.from_numpy(croppedImage / 255).float() #torch.from_numpy(np.expand_dims((croppedImage / 255), 0)).float()
 
 
     def get_target(self, img_path, video_num) -> list:
