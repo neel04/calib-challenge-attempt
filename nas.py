@@ -9,6 +9,7 @@ import os
 from tqdm import tqdm
 import nonechucks as nc
 
+#============================================================================================================
 # Constructing the files for the dataset
 if not os.path.isdir('/content/calib-challenge-attempt/calib-challenge'):
     #Should be used on a fresh run
@@ -22,11 +23,10 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
         hevc_to_frames(i, f'./data_{i}')
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
+#============================================================================================================
 
 train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,4,3])) #Making A dataset from the fist 4 hvecs
-
 val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[2]))  #2 is slightly different, hence good test for generalization
-val_dataloader = torch.utils.data.DataLoader(val_ds, num_workers=4, batch_size=1)
 
 def data_generator(batch_size, dataset):
     '''
