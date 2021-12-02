@@ -67,9 +67,8 @@ for i,j in train_dataset.as_numpy_iterator():
 model = ak.AutoModel(
     inputs=[ak.ImageInput()],
     outputs=[
-        ak.RegressionHead(metrics=["mae"]),
-        ak.RegressionHead(metrics=["mae"]),
-    ],
+        ak.RegressionHead(metrics=["mae"], output_dim=2),
+        ],
     overwrite=True,
     max_trials=1,
     seed=69420
