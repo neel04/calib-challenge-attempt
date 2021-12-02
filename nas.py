@@ -1,13 +1,13 @@
-from torch.utils import data
-from network import CalibNet
 from calib_dataset import CalibrationImageDataset
 from hvec import execute_shell, hevc_to_frames
 
 import tensorflow as tf
 import torch
 import os
+import numpy as np
 from tqdm import tqdm
 import nonechucks as nc
+import autokeras as ak
 
 #============================================================================================================
 # Constructing the files for the dataset
@@ -38,13 +38,41 @@ def data_generator(batch_size, dataset):
     dloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
     for img, tgt in iter(dloader):
-        tgt = [i.numpy() for i in tgt]
+        tgt = np.rad2deg([i.numpy() for i in tgt]) * 1000      #100 is the scaling factor
         img = img.numpy().reshape(batch_size, 256, 512)
         yield img, tgt
 
 # Creating the generator
-data_gen = data_generator(dataset=train_ds, batch_size=2)
-    
-for image, tgt in data_gen:
-    print(image[0].shape)
+train_data_gen = data_generator(dataset=train_ds, batch_size=2)
+val_data_gen = data_generator(dataset=val_ds, batch_size=2)
+
+train_dataset = tf.data.Dataset.from_generator(
+    lambda: train_data_gen,
+    output_types=(tf.float32, tf.float32), 
+    output_shapes=((None, 256, 512), (None,2)))
+
+val_dataset = tf.data.Dataset.from_generator(
+    lambda: val_data_gen,
+    output_types=(tf.float32, tf.float32), 
+    output_shapes=((None, 256, 512), (None,2)))
+
+for i,j in train_dataset.as_numpy_iterator():
+    print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\n\n')
     break
+
+#=================================================================================================
+#Autokeras block
+
+# Initialize the multi with multiple inputs and outputs.
+model = ak.AutoModel(
+    inputs=[ak.ImageInput()],
+    outputs=[
+        ak.RegressionHead(metrics=["mae"]),
+        ak.RegressionHead(metrics=["mae"]),
+    ],
+    overwrite=True,
+    max_trials=1,
+    seed=69420
+)
+# Fit the model with prepared data.
+model.fit(train_dataset, epochs=3, validation_dataset=val_dataset)

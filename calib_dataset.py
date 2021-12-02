@@ -32,7 +32,7 @@ class CalibrationImageDataset(torch.utils.data.Dataset):
         with target_file as file:
             target_pair = file.readlines()[target_idx]
         
-        return [np.float64(num.replace("\n", ""))*10000 for num in target_pair.split()]
+        return [np.float64(num.replace("\n", "")) for num in target_pair.split()]   #Scaling: *10000 
 
     def __getitem__(self, index):
         image_path = self.src[index]
