@@ -6,6 +6,7 @@ import torch
 import os
 import numpy as np
 from tqdm import tqdm
+import threading
 import nonechucks as nc
 import autokeras as ak
 
@@ -28,6 +29,29 @@ print(f'\nData Processing Complete! HVEC --> JPG\n')
 train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,4,3])) #Making A dataset from the fist 4 hvecs
 val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[2]))  #2 is slightly different, hence good test for generalization
 
+class threadsafe_iter:
+    """Takes an iterator/generator and makes it thread-safe by
+    serializing call to the `next` method of given iterator/generator.
+    """
+    def __init__(self, it):
+        self.it = it
+        self.lock = threading.Lock()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        with self.lock:
+            return self.it.__next__()
+
+def threadsafe_generator(f):
+    """A decorator that takes a generator function and makes it thread-safe.
+    """
+    def g(*a, **kw):
+        return threadsafe_iter(f(*a, **kw))
+    return g
+
+@threadsafe_generator
 def data_generator(batch_size, dataset):
     '''
     Dataset Generator for easily constructing tf.Dataset;
@@ -35,26 +59,33 @@ def data_generator(batch_size, dataset):
     
     returns (batch_sizes, 256, 512) + (batch_size, 2)
     '''
-    dloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    dloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
 
     for img, tgt in iter(dloader):
         tgt = np.rad2deg([i.numpy() for i in tgt]) * 1000      #100 is the scaling factor
         img = img.numpy().reshape(batch_size, 256, 512)
-        yield img, tgt
+        yield img, tgt.reshape(batch_size, 2)
 
 # Creating the generator
-train_data_gen = data_generator(dataset=train_ds, batch_size=2)
-val_data_gen = data_generator(dataset=val_ds, batch_size=2)
+BATCH_SIZE = 4
+
+train_data_gen = data_generator(dataset=train_ds, batch_size=BATCH_SIZE)
+val_data_gen = data_generator(dataset=val_ds, batch_size=BATCH_SIZE)
+
+def callable_iterator(generator, expected_batch_size):
+    for img_batch, targets_batch in generator:
+        if img_batch.shape[0] == expected_batch_size and targets_batch.shape[0] == expected_batch_size:
+            yield img_batch, targets_batch
 
 train_dataset = tf.data.Dataset.from_generator(
-    lambda: train_data_gen,
+    lambda: callable_iterator(train_data_gen, BATCH_SIZE),
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((None, 256, 512), (None,2)))
+    output_shapes=((None, 256, 512), (None, 2)))
 
 val_dataset = tf.data.Dataset.from_generator(
-    lambda: val_data_gen,
+    lambda: callable_iterator(val_data_gen, BATCH_SIZE),
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((None, 256, 512), (None,2)))
+    output_shapes=((None, 256, 512), (None, 2)))
 
 for i,j in train_dataset.as_numpy_iterator():
     print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\n\n')
@@ -74,4 +105,4 @@ model = ak.AutoModel(
     seed=69420
 )
 # Fit the model with prepared data.
-model.fit(train_dataset, epochs=3, validation_dataset=val_dataset)
+model.fit(x=train_dataset, validation_dataset=val_dataset, epochs=3, batch_size=BATCH_SIZE)
