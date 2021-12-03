@@ -9,6 +9,8 @@ from tqdm import tqdm
 import threading
 import nonechucks as nc
 import autokeras as ak
+import tensorflow_datasets as tfds
+import more_itertools as mit
 
 #============================================================================================================
 # Constructing the files for the dataset
@@ -105,4 +107,10 @@ model = ak.AutoModel(
     seed=69420
 )
 # Fit the model with prepared data.
-model.fit(x=train_dataset, validation_dataset=val_dataset, epochs=3, batch_size=BATCH_SIZE)
+#Convert the TF Dataset to an np.array
+#Useless AutoKeras shenanigans
+
+train_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(train_dataset)]
+val_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(val_dataset)]
+
+model.fit(x=train_numpy, validation_dataset=val_numpy, epochs=3, batch_size=BATCH_SIZE)
