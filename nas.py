@@ -62,12 +62,12 @@ def data_generator(batch_size, dataset):
     
     returns (batch_sizes, 256, 512) + (batch_size, 2)
     '''
-    dloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
+    dloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=4, drop_last=True)
 
     for img, tgt in iter(dloader):
         tgt = np.rad2deg([i.numpy() for i in tgt]) * 1000      #100 is the scaling factor
-        img = img.numpy()
-        yield img, tgt
+        img = img.squeeze().numpy()
+        yield img, tgt.squeeze(1)
 
 # Creating the generator
 BATCH_SIZE = 4
@@ -77,18 +77,18 @@ val_data_gen = data_generator(dataset=val_ds, batch_size=BATCH_SIZE)
 
 def callable_iterator(generator, expected_batch_size):
     for img_batch, targets_batch in generator:
-        if img_batch.shape[0] == expected_batch_size and targets_batch.shape[0] == expected_batch_size:
+        if img_batch.shape[0] == expected_batch_size and targets_batch.shape[1] == expected_batch_size:
             yield img_batch, targets_batch
 
 train_dataset = tf.data.Dataset.from_generator(
-    lambda: callable_iterator(train_data_gen, BATCH_SIZE),
+    lambda: train_data_gen,
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((None, 256, 512), (None, 2))).batch(BATCH_SIZE)
+    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE)
 
 val_dataset = tf.data.Dataset.from_generator(
-    lambda: callable_iterator(val_data_gen, BATCH_SIZE),
+    lambda: val_data_gen,
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((None, 256, 512), (None, 2))).batch(BATCH_SIZE)
+    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE)
 
 for i,j in train_dataset.as_numpy_iterator():
     print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\n\n')
@@ -127,10 +127,10 @@ model = ak.ImageRegressor(
 # Fit the model with prepared data.
 #Convert the TF Dataset to an np.array
 #Useless AutoKeras shenanigans
-train_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(train_dataset)]
-val_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(val_dataset)]
+#train_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(train_dataset)]
+#val_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(val_dataset)]
 
 #Setting up TRAINS logging
-task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
+#task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
 
 model.fit(x=train_dataset, validation_dataset=val_dataset, epochs=3, batch_size=BATCH_SIZE)
