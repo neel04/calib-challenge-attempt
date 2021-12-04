@@ -1,5 +1,6 @@
 from calib_dataset import CalibrationImageDataset
 from hvec import execute_shell, hevc_to_frames
+from trains import Task
 
 import tensorflow as tf
 import torch
@@ -61,12 +62,12 @@ def data_generator(batch_size, dataset):
     
     returns (batch_sizes, 256, 512) + (batch_size, 2)
     '''
-    dloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
+    dloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
 
     for img, tgt in iter(dloader):
         tgt = np.rad2deg([i.numpy() for i in tgt]) * 1000      #100 is the scaling factor
-        img = img.numpy().reshape(batch_size, 256, 512)
-        yield img, tgt.reshape(batch_size, 2)
+        img = img.numpy()
+        yield img, tgt
 
 # Creating the generator
 BATCH_SIZE = 4
@@ -82,12 +83,12 @@ def callable_iterator(generator, expected_batch_size):
 train_dataset = tf.data.Dataset.from_generator(
     lambda: callable_iterator(train_data_gen, BATCH_SIZE),
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((None, 256, 512), (None, 2)))
+    output_shapes=((None, 256, 512), (None, 2))).batch(BATCH_SIZE)
 
 val_dataset = tf.data.Dataset.from_generator(
     lambda: callable_iterator(val_data_gen, BATCH_SIZE),
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((None, 256, 512), (None, 2)))
+    output_shapes=((None, 256, 512), (None, 2))).batch(BATCH_SIZE)
 
 for i,j in train_dataset.as_numpy_iterator():
     print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\n\n')
@@ -97,6 +98,7 @@ for i,j in train_dataset.as_numpy_iterator():
 #Autokeras block
 
 # Initialize the multi with multiple inputs and outputs.
+'''
 model = ak.AutoModel(
     inputs=[ak.ImageInput()],
     outputs=[
@@ -106,11 +108,29 @@ model = ak.AutoModel(
     max_trials=1,
     seed=69420
 )
+'''
+
+def MAPEMetric(target, output):
+        return np.mean(np.abs((output.view(-1) - target.view(-1)) / output)) * 100
+
+model = ak.ImageRegressor(
+    output_dim=2,
+    loss="mean_average_error",
+    metrics=[MAPEMetric],
+    project_name="image_regressor",
+    max_trials=100,
+    objective="val_loss",
+    overwrite=True,
+    seed=69420
+    )
+
 # Fit the model with prepared data.
 #Convert the TF Dataset to an np.array
 #Useless AutoKeras shenanigans
-
 train_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(train_dataset)]
 val_numpy = [list(mit.collapse(i)) for i in tfds.as_numpy(val_dataset)]
 
-model.fit(x=train_numpy, validation_dataset=val_numpy, epochs=3, batch_size=BATCH_SIZE)
+#Setting up TRAINS logging
+task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
+
+model.fit(x=train_dataset, validation_dataset=val_dataset, epochs=3, batch_size=BATCH_SIZE)
