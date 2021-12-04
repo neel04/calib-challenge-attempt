@@ -83,12 +83,12 @@ def callable_iterator(generator, expected_batch_size):
 train_dataset = tf.data.Dataset.from_generator(
     lambda: train_data_gen,
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE)
+    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE, drop_remainder=True)
 
 val_dataset = tf.data.Dataset.from_generator(
     lambda: val_data_gen,
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE)
+    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE, drop_remainder=True)
 
 for i,j in train_dataset.as_numpy_iterator():
     print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\n\n')
@@ -133,4 +133,4 @@ model = ak.ImageRegressor(
 #Setting up TRAINS logging
 #task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
 
-model.fit(x=train_dataset, validation_dataset=val_dataset, epochs=3, batch_size=BATCH_SIZE)
+model.fit(x=train_dataset, validation_dataset=val_dataset, epochs=3)
