@@ -62,15 +62,14 @@ def data_generator(batch_size, dataset):
     
     returns (batch_sizes, 256, 512) + (batch_size, 2)
     '''
-    dloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=4, drop_last=True)
-
-    for img, tgt in iter(dloader):
-        tgt = np.rad2deg([i.numpy() for i in tgt]) * 1000      #100 is the scaling factor
-        img = img.squeeze().numpy()
-        yield img, tgt.squeeze(1)
+    for idx in range(len(dataset)):
+        img, tgt = dataset[idx]
+        tgt = np.rad2deg([i for i in tgt]) * 1000      #100 is the scaling factor
+        if not np.isnan(tgt[0]):
+          yield img, tgt
 
 # Creating the generator
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 
 train_data_gen = data_generator(dataset=train_ds, batch_size=BATCH_SIZE)
 val_data_gen = data_generator(dataset=val_ds, batch_size=BATCH_SIZE)
@@ -83,12 +82,14 @@ def callable_iterator(generator, expected_batch_size):
 train_dataset = tf.data.Dataset.from_generator(
     lambda: train_data_gen,
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE, drop_remainder=True).unbatch()
+    output_shapes=((256, 512), (2,))
+    ).batch(BATCH_SIZE, drop_remainder=True)
 
 val_dataset = tf.data.Dataset.from_generator(
     lambda: val_data_gen,
     output_types=(tf.float32, tf.float32), 
-    output_shapes=((256, 512), (2,))).batch(BATCH_SIZE, drop_remainder=True).unbatch()
+    output_shapes=((256, 512), (2,))
+    ).batch(BATCH_SIZE, drop_remainder=True)
 
 for i,j in train_dataset.as_numpy_iterator():
     print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\ntarget:{j}\n')
@@ -131,4 +132,5 @@ model = ak.AutoModel(
 #Setting up TRAINS logging
 #task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
 
-model.fit(x=train_dataset, validation_data=val_dataset, epochs=3)
+print('\nSamples going for training:', len([0 for i,j in train_dataset])*BATCH_SIZE)
+model.fit(x=train_dataset, validation_data=val_dataset, epochs=3, batch_size=BATCH_SIZE)
