@@ -1,9 +1,7 @@
-from calib_dataset import CalibrationImageDataset
+from calib_dataset import CalibrationImageDataset, TFCalibrationDataset, DatasetFromSequenceClass
 from hvec import execute_shell, hevc_to_frames
-from trains import Task
 
 import tensorflow as tf
-import torch
 import os
 import numpy as np
 from tqdm import tqdm
@@ -32,68 +30,72 @@ print(f'\nData Processing Complete! HVEC --> JPG\n')
 train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,4,3])) #Making A dataset from the fist 4 hvecs
 val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[2]))  #2 is slightly different, hence good test for generalization
 
-class threadsafe_iter:
-    """Takes an iterator/generator and makes it thread-safe by
-    serializing call to the `next` method of given iterator/generator.
-    """
-    def __init__(self, it):
-        self.it = it
-        self.lock = threading.Lock()
+tf_train_ds = TFCalibrationDataset('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=2)
+tf_val_ds = TFCalibrationDataset('/content/calib-challenge-attempt/', files=[2], batch_size=2)
 
-    def __iter__(self):
-        return self
 
-    def __next__(self):
-        with self.lock:
-            return self.it.__next__()
+# class threadsafe_iter:
+#     """Takes an iterator/generator and makes it thread-safe by
+#     serializing call to the `next` method of given iterator/generator.
+#     """
+#     def __init__(self, it):
+#         self.it = it
+#         self.lock = threading.Lock()
 
-def threadsafe_generator(f):
-    """A decorator that takes a generator function and makes it thread-safe.
-    """
-    def g(*a, **kw):
-        return threadsafe_iter(f(*a, **kw))
-    return g
+#     def __iter__(self):
+#         return self
 
-@threadsafe_generator
-def data_generator(batch_size, dataset):
-    '''
-    Dataset Generator for easily constructing tf.Dataset;
-    adapter for a torch Dataset.
+#     def __next__(self):
+#         with self.lock:
+#             return self.it.__next__()
+
+# def threadsafe_generator(f):
+#     """A decorator that takes a generator function and makes it thread-safe.
+#     """
+#     def g(*a, **kw):
+#         return threadsafe_iter(f(*a, **kw))
+#     return g
+
+# @threadsafe_generator
+# def data_generator(batch_size, dataset):
+#     '''
+#     Dataset Generator for easily constructing tf.Dataset;
+#     adapter for a torch Dataset.
     
-    returns (batch_sizes, 256, 512) + (batch_size, 2)
-    '''
-    for idx in range(len(dataset)):
-        img, tgt = dataset[idx]
-        tgt = np.rad2deg([i for i in tgt]) * 1000      #100 is the scaling factor
-        if not np.isnan(tgt[0]):
-          yield img, tgt
+#     returns (batch_sizes, 256, 512) + (batch_size, 2)
+#     '''
+#     for idx in range(len(dataset)):
+#         img, tgt = dataset[idx]
+#         tgt = np.rad2deg([i for i in tgt]) * 1000      #100 is the scaling factor
+#         if not np.isnan(tgt[0]):
+#           yield img, tgt
 
-# Creating the generator
-BATCH_SIZE = 4
+# # Creating the generator
+# BATCH_SIZE = 4
 
-train_data_gen = data_generator(dataset=train_ds, batch_size=BATCH_SIZE)
-val_data_gen = data_generator(dataset=val_ds, batch_size=BATCH_SIZE)
+# train_data_gen = data_generator(dataset=train_ds, batch_size=BATCH_SIZE)
+# val_data_gen = data_generator(dataset=val_ds, batch_size=BATCH_SIZE)
 
-def callable_iterator(generator, expected_batch_size):
-    for img_batch, targets_batch in generator:
-        if img_batch.shape[0] == expected_batch_size:
-            yield img_batch, targets_batch
+# def callable_iterator(generator, expected_batch_size):
+#     for img_batch, targets_batch in generator:
+#         if img_batch.shape[0] == expected_batch_size:
+#             yield img_batch, targets_batch
 
-train_dataset = tf.data.Dataset.from_generator(
-    lambda: train_data_gen,
-    output_types=(tf.float32, tf.float32), 
-    output_shapes=((256, 512), (2,))
-    ).batch(BATCH_SIZE, drop_remainder=True)
+# train_dataset = tf.data.Dataset.from_generator(
+#     lambda: train_data_gen,
+#     output_types=(tf.float32, tf.float32), 
+#     output_shapes=((256, 512), (2,))
+#     ).batch(BATCH_SIZE, drop_remainder=True)
 
-val_dataset = tf.data.Dataset.from_generator(
-    lambda: val_data_gen,
-    output_types=(tf.float32, tf.float32), 
-    output_shapes=((256, 512), (2,))
-    ).batch(BATCH_SIZE, drop_remainder=True)
+# val_dataset = tf.data.Dataset.from_generator(
+#     lambda: val_data_gen,
+#     output_types=(tf.float32, tf.float32), 
+#     output_shapes=((256, 512), (2,))
+#     ).batch(BATCH_SIZE, drop_remainder=True)
 
-for i,j in train_dataset.as_numpy_iterator():
-    print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\ntarget:{j}\n')
-    break
+# for i,j in train_dataset.as_numpy_iterator():
+#     print(f'\nTF dataset image shape: {i.shape}\nTF dataset target shape: {j.shape}\ntarget:{j}\n')
+#     break
 
 #=================================================================================================
 #Autokeras block
@@ -131,6 +133,15 @@ model = ak.AutoModel(
 
 #Setting up TRAINS logging
 #task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
+#print('\nSamples going for training:', len([0 for i,j in train_dataset])*BATCH_SIZE)
 
-print('\nSamples going for training:', len([0 for i,j in train_dataset])*BATCH_SIZE)
-model.fit(x=train_dataset, validation_data=val_dataset, epochs=3, batch_size=BATCH_SIZE)
+def gen_data_generator():
+    for i in range(tf_train_ds.__len__()):
+        if tf_train_ds.__getitem__(i) is not None:
+            yield tf_train_ds.getitem(i)
+
+training =  tf.data.Dataset.from_generator(gen_data_generator, output_signature=(
+        tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 2), dtype=tf.float32))) 
+
+model.fit(x=training, epochs=3, batch_size=2)

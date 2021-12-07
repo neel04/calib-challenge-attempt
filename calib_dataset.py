@@ -79,8 +79,47 @@ class TFCalibrationDataset(tf.keras.utils.Sequence):
     def __getitem__(self, index):
         batched_image_paths = self.src[index * self.batch_size:(index + 1) * self.batch_size]
         batch_x = [self.preprocess(image_path) for image_path in batched_image_paths]
-        batch_y = [self.get_target(image_path, int(image_path.split('/')[3][-1])) for image_path in batched_image_paths][index * self.batch_size:(index + 1) *
+        batch_y = [self.
+        get_target(image_path, int(image_path.split('/')[3][-1])) for image_path in batched_image_paths][index * self.batch_size:(index + 1) *
         self.batch_size]
 
-        if all(isinstance(e, (int, float)) for sample in batch_y for e in sample):
+        # This works fine, check nas.py
+        if all(isinstance(e[0], (int, float)) for e in batch_y) and batch_y != []:
+            print("Batch y:", batch_y)
             return np.array(batch_x), np.array(batch_y)
+    
+    def getitem(self, index):
+        self.__getitem__(index)
+
+
+def DatasetFromSequenceClass(sequenceClass, stepsPerEpoch, nEpochs, batchSize, dims=[512,512,3], n_features=2, data_type=tf.float32, label_type=tf.float32):
+    # eager execution wrapper
+    def DatasetFromSequenceClassEagerContext(func):
+        def DatasetFromSequenceClassEagerContextWrapper(batchIndexTensor):
+            # Use a tf.py_function to prevent auto-graph from compiling the method
+            tensors = tf.py_function(
+                func,
+                inp=[batchIndexTensor],
+                Tout=[data_type, label_type]
+            )
+
+            # set the shape of the tensors - assuming channels last
+            tensors[0].set_shape([batchSize, dims[0], dims[1], dims[2]])   # [samples, height, width, nChannels]
+            tensors[1].set_shape([batchSize, n_features]) # [samples, height, width, nClasses for one hot]
+            return tensors
+        return DatasetFromSequenceClassEagerContextWrapper
+
+    # TF dataset wrapper that indexes our sequence class
+    @DatasetFromSequenceClassEagerContext
+    def LoadBatchFromSequenceClass(batchIndexTensor):
+        # get our index as numpy value - we can use .numpy() because we have wrapped our function
+        batchIndex = batchIndexTensor.numpy()
+
+        # zero-based index for what batch of data to load; i.e. goes to 0 at stepsPerEpoch and starts cound over
+        zeroBatch = batchIndex % stepsPerEpoch
+
+        # load data
+        data, labels = sequenceClass[zeroBatch]
+
+        # convert to tensors and return
+        return tf.convert_to_tensor(data), tf.convert_to_tensor(labels)
