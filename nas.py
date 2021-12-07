@@ -56,15 +56,23 @@ model = ak.AutoModel(
 
 #Setting up TRAINS logging
 task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
-print('\nSamples going for training:', len([0 for i,j in train_dataset])*BATCH_SIZE)
 
-def gen_data_generator():
+def train_gen_data_generator():
     for i in range(len(tf_train_ds)):
         if tf_train_ds.__getitem__(i) is not None:
             yield tf_train_ds.__getitem__(i)
 
-training =  tf.data.Dataset.from_generator(gen_data_generator, output_signature=(
+def val_gen_data_generator():
+    for i in range(len(tf_val_ds)):
+        if tf_val_ds.__getitem__(i) is not None:
+            yield tf_val_ds.__getitem__(i)
+
+training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
+        tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
+
+validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
         tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32))) 
 
-model.fit(x=training, validation_data=tf_val_ds, epochs=3, batch_size=2, shuffle=True)
+model.fit(x=training, validation_data=validation, epochs=3, batch_size=2, shuffle=True)
