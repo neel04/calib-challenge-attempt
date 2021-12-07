@@ -23,9 +23,9 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-
-tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=2)
-tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=2)
+BATCH_SIZE = 2
+tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE)
+tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE)
 
 # Initialize the multi with multiple inputs and outputs.
 def MAPEMetric(target, output):
@@ -66,6 +66,8 @@ def val_gen_data_generator():
     for i in range(len(tf_val_ds)):
         if tf_val_ds.__getitem__(i) is not None:
             yield tf_val_ds.__getitem__(i)
+            
+print(f'Produced sample shape: {tf_train_ds.__getitem__(2)[0].shape}')
 
 training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
         tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
@@ -75,4 +77,4 @@ validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_sign
         tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32))) 
 
-model.fit(x=training, validation_data=validation, epochs=3, batch_size=2, shuffle=True)
+model.fit(x=training, validation_data=validation, epochs=3, batch_size=BATCH_SIZE, shuffle=True)
