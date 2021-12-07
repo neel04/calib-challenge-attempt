@@ -92,34 +92,37 @@ class TFCalibrationDataset(tf.keras.utils.Sequence):
         self.__getitem__(index)
 
 
-def DatasetFromSequenceClass(sequenceClass, stepsPerEpoch, nEpochs, batchSize, dims=[512,512,3], n_features=2, data_type=tf.float32, label_type=tf.float32):
-    # eager execution wrapper
-    def DatasetFromSequenceClassEagerContext(func):
-        def DatasetFromSequenceClassEagerContextWrapper(batchIndexTensor):
-            # Use a tf.py_function to prevent auto-graph from compiling the method
-            tensors = tf.py_function(
-                func,
-                inp=[batchIndexTensor],
-                Tout=[data_type, label_type]
-            )
+class SequenceGenerator(tf.keras.utils.Sequence):
 
-            # set the shape of the tensors - assuming channels last
-            tensors[0].set_shape([batchSize, dims[0], dims[1], dims[2]])   # [samples, height, width, nChannels]
-            tensors[1].set_shape([batchSize, n_features]) # [samples, height, width, nClasses for one hot]
-            return tensors
-        return DatasetFromSequenceClassEagerContextWrapper
+    def __init__(self, root_folder, files:list, batch_size):  # ./
+        self.root_folder = root_folder
+        self.target = []
+        self.files = files #list of all the files needed
+        self.src = sum([glob.glob(f"{self.root_folder}data_{video_num}/*.jpg") for video_num in self.files], []) #converting nested list to flat
+        self.batch_size = batch_size
 
-    # TF dataset wrapper that indexes our sequence class
-    @DatasetFromSequenceClassEagerContext
-    def LoadBatchFromSequenceClass(batchIndexTensor):
-        # get our index as numpy value - we can use .numpy() because we have wrapped our function
-        batchIndex = batchIndexTensor.numpy()
+    def __len__(self):
+        return int(np.ceil(len(self.src) / float(self.batch_size)))
 
-        # zero-based index for what batch of data to load; i.e. goes to 0 at stepsPerEpoch and starts cound over
-        zeroBatch = batchIndex % stepsPerEpoch
+    def __getitem__(self, idx):
+        batch_img = self.src[idx * self.batch_size:(idx + 1) * self.batch_size]
+        return np.array([self.preprocess(image) for image in batch_img]), np.array([self.get_target(image, image.split('/')[-2].split('_')[1]) for image in batch_img])
 
-        # load data
-        data, labels = sequenceClass[zeroBatch]
+    def preprocess(self, image):
+        # split image into 2 parts, just covering the hood of the Car
+        img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2GRAY)
+        height, width = img.shape
+        croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
+        croppedImage = cv2.resize(croppedImage, (512, 256))
+        #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
+        return croppedImage / 255
 
-        # convert to tensors and return
-        return tf.convert_to_tensor(data), tf.convert_to_tensor(labels)
+    def get_target(self, img_path, video_num) -> list:
+        target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
+        target_idx = int(img_path.split("/")[-1].split(".")[0])
+
+        # take target_idx'th line number and convert targets to a list
+        with target_file as file:
+            target_pair = file.readlines()[target_idx]
+        
+        return [np.float64(num.replace("\n", "")) for num in target_pair.split()]  

@@ -1,4 +1,4 @@
-from calib_dataset import CalibrationImageDataset, TFCalibrationDataset, DatasetFromSequenceClass
+from calib_dataset import CalibrationImageDataset, TFCalibrationDataset, SequenceGenerator
 from hvec import execute_shell, hevc_to_frames
 
 import tensorflow as tf
@@ -27,11 +27,8 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
 
-train_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[0,1,4,3])) #Making A dataset from the fist 4 hvecs
-val_ds = nc.SafeDataset(CalibrationImageDataset('/content/calib-challenge-attempt/', files=[2]))  #2 is slightly different, hence good test for generalization
-
-tf_train_ds = TFCalibrationDataset('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=2)
-tf_val_ds = TFCalibrationDataset('/content/calib-challenge-attempt/', files=[2], batch_size=2)
+tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=2)
+tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=2)
 
 
 # class threadsafe_iter:
@@ -136,9 +133,9 @@ model = ak.AutoModel(
 #print('\nSamples going for training:', len([0 for i,j in train_dataset])*BATCH_SIZE)
 
 def gen_data_generator():
-    for i in range(tf_train_ds.__len__()):
+    for i in range(len(tf_train_ds)):
         if tf_train_ds.__getitem__(i) is not None:
-            yield tf_train_ds.getitem(i)
+            yield tf_train_ds.__getitem__(i)
 
 training =  tf.data.Dataset.from_generator(gen_data_generator, output_signature=(
         tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
