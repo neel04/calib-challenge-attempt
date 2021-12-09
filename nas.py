@@ -3,7 +3,6 @@ from hvec import execute_shell, hevc_to_frames
 
 import tensorflow as tf
 from tqdm import tqdm
-from clearml import Task
 import os
 import numpy as np
 import autokeras as ak
@@ -55,7 +54,7 @@ model = ak.AutoModel(
 # Fit the model with prepared data.
 
 #Setting up TRAINS logging
-task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
+#task = Task.init(project_name="CalibNet", task_name="Training CalibNet")
 
 def train_gen_data_generator():
     for i in range(len(tf_train_ds)):
