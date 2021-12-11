@@ -24,7 +24,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE)
 
@@ -85,7 +85,7 @@ wandb.init(project="CalibNet",
            config={"hyper":"parameters"})
 
 EStop = tf.keras.callbacks.EarlyStopping(
-    monitor='val_loss', min_delta=3, patience=5, verbose=0,
+    monitor='val_loss', min_delta=3, patience=3, verbose=0,
     restore_best_weights=True)
 
 model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop], verbose=2)
