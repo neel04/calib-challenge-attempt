@@ -39,7 +39,8 @@ model = ak.ImageRegressor(
     project_name="image_regressor",
     max_trials=100,
     objective="val_loss",
-    overwrite=True,
+    overwrite=False,
+    #directory='/content/drive/MyDrive/..'    #Directory to sync progress @ cloud
     seed=69420
     )
 '''
