@@ -88,4 +88,4 @@ EStop = tf.keras.callbacks.EarlyStopping(
     monitor='val_loss', min_delta=3, patience=5, verbose=0,
     restore_best_weights=True)
 
-model.fit(x=training, validation_data=validation, epochs=3, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop], verbose=2)
+model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop], verbose=2)
