@@ -40,7 +40,7 @@ model = ak.ImageRegressor(
     max_trials=150,
     objective="val_loss",
     overwrite=False,
-    #directory='/content/drive/MyDrive/..'    #Directory to sync progress @ cloud
+    directory='/content/drive/MyDrive/Comma_AI/',    #Directory to sync progress @ cloud
     seed=69420
     )
 '''
