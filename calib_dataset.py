@@ -59,7 +59,8 @@ class SequenceGenerator(tf.keras.utils.Sequence):
 
     def __getitem__(self, idx):
         batch_img = self.src[idx * self.batch_size:(idx + 1) * self.batch_size]
-        return np.array([self.preprocess(image) for image in batch_img]), np.array([self.get_target(image, image.split('/')[-2].split('_')[1]) for image in batch_img])
+        returned_images = torch.einsum('ijk->ikj' ,torch.Tensor(np.array([self.preprocess(image) for image in batch_img]))).numpy()
+        return returned_images, np.array([self.get_target(image, image.split('/')[-2].split('_')[1]) for image in batch_img])
 
     def preprocess(self, image):
         # split image into 2 parts, just covering the hood of the Car
@@ -68,7 +69,7 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
         croppedImage = cv2.resize(croppedImage, (512, 256))
         #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
-        return torch.einsum('ij->ji', torch.Tensor(croppedImage / 255)) #einsum for transposing
+        return croppedImage / 255 #einsum for transposing
 
     def get_target(self, img_path, video_num) -> list:
         target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
@@ -78,4 +79,4 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         with target_file as file:
             target_pair = file.readlines()[target_idx]
         
-        return [np.float64(num.replace("\n", "")) for num in target_pair.split()]  
+        return [np.float64(num.replace("\n", "")) for num in target_pair.split()]
