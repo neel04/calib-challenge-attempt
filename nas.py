@@ -24,7 +24,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE)
 
@@ -37,7 +37,7 @@ model = ak.ImageRegressor(
     loss="mean_squared_error",
     metrics=[MAPEMetric],
     project_name="image_regressor",
-    max_trials=100,
+    max_trials=150,
     objective="val_loss",
     overwrite=False,
     #directory='/content/drive/MyDrive/..'    #Directory to sync progress @ cloud
