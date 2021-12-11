@@ -2,6 +2,8 @@ from calib_dataset import SequenceGenerator
 from hvec import execute_shell, hevc_to_frames
 
 import tensorflow as tf
+import wandb
+from wandb.keras import WandbCallback
 from tqdm import tqdm
 import os
 import numpy as np
@@ -22,7 +24,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 2
+BATCH_SIZE = 32
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE)
 
@@ -74,6 +76,12 @@ training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_sign
 
 validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
         tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
-        tf.TensorSpec(shape=(None, 2), dtype=tf.float32))) 
+        tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
 
-model.fit(x=training, validation_data=validation, epochs=3, batch_size=BATCH_SIZE, shuffle=True)
+#WANDB logging
+wandb.init(project="CalibNet", 
+           name="NAS_Run",
+           config={"hyper":"parameters"})
+
+
+model.fit(x=training, validation_data=validation, epochs=3, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback()])
