@@ -68,7 +68,7 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
         croppedImage = cv2.resize(croppedImage, (512, 256))
         #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
-        return croppedImage / 255
+        return torch.einsum('ij->ji', torch.Tensor(croppedImage / 255)) #einsum for transposing
 
     def get_target(self, img_path, video_num) -> list:
         target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
