@@ -72,11 +72,11 @@ def val_gen_data_generator():
 print(f'Produced sample shape: {tf_train_ds.__getitem__(2)[0].shape}')
 
 training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 512, 256), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
 
 validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 256, 512), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 512, 256), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
 
 #WANDB logging
