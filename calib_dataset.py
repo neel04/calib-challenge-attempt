@@ -60,7 +60,9 @@ class SequenceGenerator(tf.keras.utils.Sequence):
     def __getitem__(self, idx):
         batch_img = self.src[idx * self.batch_size:(idx + 1) * self.batch_size]
         returned_images = torch.einsum('ijk->ikj' ,torch.Tensor(np.array([self.preprocess(image) for image in batch_img]))).numpy()
-        return returned_images, np.array([self.get_target(image, image.split('/')[-2].split('_')[1]) for image in batch_img])
+        tgts = np.array([self.get_target(image, image.split('/')[-2].split('_')[1]) for image in batch_img])
+        if not any(x is None for x in tgts):
+          return returned_images, tgts
 
     def preprocess(self, image):
         # split image into 2 parts, just covering the hood of the Car
@@ -79,4 +81,6 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         with target_file as file:
             target_pair = file.readlines()[target_idx]
         
-        return [np.float64(num.replace("\n", "")) for num in target_pair.split()]
+        tgt = np.array([np.float32(num.replace("\n", "")) for num in target_pair.split()])
+        if not np.isnan(np.sum(tgt)) and not any(x is None for x in tgt):
+          return tgt
