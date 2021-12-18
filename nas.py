@@ -84,6 +84,13 @@ wandb.init(project="CalibNet",
            name="NAS_Run",
            config={"hyper":"parameters"})
 
+for sample in training.as_numpy_iterator():
+  result = sample[0].prod()
+  if not isinstance(result,np.float32):
+    print('\nWarning!\tNaNs found in data. Will lead to errors in gradient flow', type(result))
+    raise SystemExit
+  print('re:',result)
+
 EStop = tf.keras.callbacks.EarlyStopping(
     monitor='val_loss', min_delta=3, patience=3, verbose=0,
     restore_best_weights=True)
