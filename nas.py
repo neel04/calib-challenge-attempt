@@ -91,7 +91,7 @@ for sample in training.as_numpy_iterator():
     raise SystemExit
 
 EStop = tf.keras.callbacks.EarlyStopping(
-    monitor='val_loss', min_delta=3, patience=3, verbose=0,
+    monitor='MAPEMetric', min_delta=2, patience=3, verbose=0,
     restore_best_weights=True)
 
 model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop], verbose=2)
