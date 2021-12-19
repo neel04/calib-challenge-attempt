@@ -4,6 +4,7 @@ from hvec import execute_shell, hevc_to_frames
 import tensorflow as tf
 import wandb
 from wandb.keras import WandbCallback
+from kerastuner import Objective
 from tqdm import tqdm
 import os
 import numpy as np
@@ -38,7 +39,7 @@ model = ak.ImageRegressor(
     metrics=[MAPEMetric],
     project_name="image_regressor",
     max_trials=150,
-    objective="val_loss",
+    objective=Objective('MAPEMetric', direction='min'),
     overwrite=False,
     directory='/content/drive/MyDrive/Comma_AI/',    #Directory to sync progress @ cloud
     seed=69420
@@ -94,4 +95,4 @@ EStop = tf.keras.callbacks.EarlyStopping(
     monitor='MAPEMetric', min_delta=2, patience=3, verbose=0,
     restore_best_weights=True)
 
-model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop], verbose=2)
+model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop])
