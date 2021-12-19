@@ -25,7 +25,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 32
+BATCH_SIZE = 4
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE)
 
@@ -73,16 +73,16 @@ def val_gen_data_generator():
 print(f'Produced sample shape: {tf_train_ds.__getitem__(2)[0].shape}')
 
 training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 512, 256), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 237, 1164, 3), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
 
 validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 512, 256), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 237, 1164, 3), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
 
 #WANDB logging
 wandb.init(project="CalibNet", 
-           name="NAS_Run",
+           name="RGB_Run",
            config={"hyper":"parameters"})
 
 for sample in training.as_numpy_iterator():
@@ -92,7 +92,7 @@ for sample in training.as_numpy_iterator():
     raise SystemExit
 
 EStop = tf.keras.callbacks.EarlyStopping(
-    monitor='MAPEMetric', min_delta=2, patience=3, verbose=0, mode="min", baseline=100 #baseline is 100
+    monitor='MAPEMetric', min_delta=2, patience=3, verbose=0, mode="min", baseline=100, #baseline is 100
     restore_best_weights=True)
 
 model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop])

@@ -59,19 +59,21 @@ class SequenceGenerator(tf.keras.utils.Sequence):
 
     def __getitem__(self, idx):
         batch_img = self.src[idx * self.batch_size:(idx + 1) * self.batch_size]
-        returned_images = torch.einsum('ijk->ikj' ,torch.Tensor(np.array([self.preprocess(image) for image in batch_img]))).numpy()
+        returned_images = torch.Tensor(np.array([self.preprocess(image) for image in batch_img])).numpy()
         tgts = np.array([self.get_target(image, image.split('/')[-2].split('_')[1]) for image in batch_img])
         if not any(x is None for x in tgts):
           return returned_images, tgts
 
     def preprocess(self, image):
         # split image into 2 parts, just covering the hood of the Car
-        img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2GRAY)
-        height, width = img.shape
-        croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
-        croppedImage = cv2.resize(croppedImage, (512, 256))
+        img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB)
+        height, width, _ = img.shape
+        #print(f'h: {height}\tw: {width}')
+        croppedImage = img[int(height/2)+200:height, 0:width] #this line crops
+        #croppedImage = cv2.resize(croppedImage, (512, 256))
         #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
-        return croppedImage / 255 #einsum for transposing
+        #print(f'final_shape: {croppedImage.shape}')
+        return croppedImage / 255
 
     def get_target(self, img_path, video_num) -> list:
         target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
