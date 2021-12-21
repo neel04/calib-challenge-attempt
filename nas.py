@@ -41,8 +41,8 @@ model = ak.ImageRegressor(
     max_trials=150,
     objective=Objective('MAPEMetric', direction='min'),
     overwrite=False,
-    directory='/content/drive/MyDrive/Comma_AI/',    #Directory to sync progress @ cloud
-    seed=69420
+    #directory='',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
+    seed=42
     )
 '''
 model = ak.AutoModel(
