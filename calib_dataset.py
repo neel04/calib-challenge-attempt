@@ -47,7 +47,7 @@ class CalibrationImageDataset(torch.utils.data.Dataset):
 # Build the keras Sequence dataset for AutoKeras
 class SequenceGenerator(tf.keras.utils.Sequence):
 
-    def __init__(self, root_folder, files:list, batch_size):  # ./
+    def __init__(self, root_folder, files:list, batch_size, scalar:int):  # ./
         self.root_folder = root_folder
         self.target = []
         self.files = files #list of all the files needed
@@ -85,4 +85,4 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         
         tgt = np.array([np.float32(num.replace("\n", "")) for num in target_pair.split()])
         if not np.isnan(np.sum(tgt)) and not any(x is None for x in tgt):
-          return tgt
+          return tgt * scalar
