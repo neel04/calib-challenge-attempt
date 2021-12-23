@@ -2,7 +2,7 @@ from calib_dataset import SequenceGenerator
 from hvec import execute_shell, hevc_to_frames
 
 import tensorflow as tf
-import wandb
+import wandb`
 from wandb.keras import WandbCallback
 from kerastuner import Objective
 from tqdm import tqdm
@@ -41,7 +41,7 @@ model = ak.ImageRegressor(
     max_trials=150,
     objective=Objective('MAPEMetric', direction='min'),
     overwrite=False,
-    #directory='',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
+    directory='/kaggle/working/calib-challenge-attempt/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
     seed=42
     )
 '''
