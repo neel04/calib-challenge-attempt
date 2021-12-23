@@ -85,4 +85,4 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         
         tgt = np.array([np.float32(num.replace("\n", "")) for num in target_pair.split()])
         if not np.isnan(np.sum(tgt)) and not any(x is None for x in tgt):
-          return tgt * scalar
+          return tgt * self.scalar
