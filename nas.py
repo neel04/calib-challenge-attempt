@@ -39,7 +39,7 @@ model = ak.ImageRegressor(
     metrics=[MAPEMetric],
     project_name="image_regressor",
     max_trials=150,
-    objective=Objective('MAPEMetric', direction='min'),
+    objective="val_loss",
     overwrite=False,
     directory='/kaggle/working/calib-challenge-attempt/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
     seed=42
