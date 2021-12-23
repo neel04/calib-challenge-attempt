@@ -53,6 +53,7 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         self.files = files #list of all the files needed
         self.src = sum([glob.glob(f"{self.root_folder}data_{video_num}/*.jpg") for video_num in self.files], []) #converting nested list to flat
         self.batch_size = batch_size
+        self.scalar = scalar
 
     def __len__(self):
         return int(np.ceil(len(self.src) / float(self.batch_size)))
