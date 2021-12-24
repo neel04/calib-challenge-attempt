@@ -25,9 +25,9 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 4
-tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE, scalar=10000)
-tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE, scalar=10000)
+BATCH_SIZE = 16
+tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE, scalar=1000)
+tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE, scalar=1000)
 
 # Initialize the multi with multiple inputs and outputs.
 def MAPEMetric(target, output):
@@ -74,11 +74,11 @@ print(f'Produced sample shape: {tf_train_ds.__getitem__(2)[0].shape}')
 
 training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
         tf.TensorSpec(shape=(None, 237, 1164, 3), dtype=tf.float32),
-        tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
+        tf.TensorSpec(shape=(None, 2), dtype=tf.float32))).prefetch(tf.data.AUTOTUNE)
 
 validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
         tf.TensorSpec(shape=(None, 237, 1164, 3), dtype=tf.float32),
-        tf.TensorSpec(shape=(None, 2), dtype=tf.float32)))
+        tf.TensorSpec(shape=(None, 2), dtype=tf.float32))).prefetch(tf.data.AUTOTUNE)
 
 #WANDB logging
 wandb.init(project="CalibNet", 
