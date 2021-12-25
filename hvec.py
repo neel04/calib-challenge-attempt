@@ -28,3 +28,22 @@ def hevc_to_frames(sample_num, out_folder):
     count += 1
   
   #print(f'{sample_num} has been completed')
+
+def nan_i_nator(base_path, files):
+  for file in files:
+    lines = open(f'{base_path}/{file}.txt').readlines()
+    idxes = []
+    cleaned = []
+
+    for location, line in enumerate(lines):
+      if "nan" in line:
+        idxes.append(location)
+      else:
+        cleaned.append(line)
+
+    with open(f'{base_path}/{file}.txt', 'w') as outfile:
+      outfile.write("\n".join(str(item) for item in cleaned))
+
+    print(idxes)
+    
+    [execute_shell(f'rm /content/calib-challenge-attempt/data_{file}/{i}.jpg') for i in idxes]
