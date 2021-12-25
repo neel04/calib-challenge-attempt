@@ -76,11 +76,11 @@ def val_gen_data_generator():
 print(f'Produced sample shape: {tf_train_ds.__getitem__(1)[0].shape}')
 
 training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 337, 582), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 337, 582. 3), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32))).prefetch(tf.data.AUTOTUNE)
 
 validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 337, 582), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 337, 582, 3), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32))).prefetch(tf.data.AUTOTUNE)
 
 #WANDB logging
