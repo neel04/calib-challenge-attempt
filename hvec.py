@@ -36,7 +36,7 @@ def hevc_to_frames(sample_num, out_folder):
   
   # writes the non-NANed file
   with open(f'/content/calib-challenge-attempt/calib_challenge/labeled/{sample_num}.txt', 'w') as outfile:
-      outfile.write("\n".join(str(item) for item in cleaned))
+      outfile.write("".join(str(item) for item in cleaned))
   #print(f'{sample_num} has been completed')
 
 def nan_i_nator(base_path, files):
