@@ -52,7 +52,7 @@ def nan_i_nator(base_path, files):
         cleaned.append(line)
 
     with open(f'{base_path}/{file}.txt', 'w') as outfile:
-      outfile.write("\n".join(str(item) for item in cleaned))
+      outfile.write("".join(str(item) for item in cleaned))
 
     print(f'cleaned {len(idxes)} NaNs in {file}!')
     
