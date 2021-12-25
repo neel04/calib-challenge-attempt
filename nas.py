@@ -1,5 +1,5 @@
 from calib_dataset import SequenceGenerator
-from hvec import execute_shell, hevc_to_frames
+from hvec import execute_shell, hevc_to_frames, nan_i_nator
 
 import tensorflow as tf
 import wandb
@@ -11,6 +11,9 @@ import numpy as np
 import autokeras as ak
 
 #============================================================================================================
+#Removes Nans in files
+nan_i_nator('/content/calib-challenge-attempt/calib_challenge/labeled', [0,1,2,3,4])
+
 # Constructing the files for the dataset
 if not os.path.isdir('/content/calib-challenge-attempt/calib-challenge'):
     #Should be used on a fresh run
