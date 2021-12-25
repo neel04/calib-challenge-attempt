@@ -12,7 +12,7 @@ import autokeras as ak
 
 #============================================================================================================
 #Removes Nans in files
-nan_i_nator('/content/calib-challenge-attempt/calib_challenge/labeled', [0,1,2,3,4])
+#nan_i_nator('/content/calib-challenge-attempt/calib_challenge/labeled', [0,1,2,3,4])
 
 # Constructing the files for the dataset
 if not os.path.isdir('/content/calib-challenge-attempt/calib-challenge'):
@@ -28,7 +28,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE, scalar=1000)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE, scalar=1000)
 
