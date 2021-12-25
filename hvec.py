@@ -26,13 +26,12 @@ def hevc_to_frames(sample_num, out_folder):
       break
     
     if "nan" in lines[count+1]:
-      count += 1
       continue
     else:
       cleaned.append(lines[count+1])
       image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
       cv2.imwrite(f"./{out_folder}/{count}.jpg", image)     # save frame as JPEG file
-    count += 1
+      count += 1
   
   # writes the non-NANed file
   with open(f'/content/calib-challenge-attempt/calib_challenge/labeled/{sample_num}.txt', 'w') as outfile:
