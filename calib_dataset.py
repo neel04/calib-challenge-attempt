@@ -70,11 +70,11 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB)
         height, width, _ = img.shape
         #print(f'h: {height}\tw: {width}')
-        croppedImage = img[int(height/2)+200:height, 0:width] #this line crops
-        #croppedImage = cv2.resize(croppedImage, (512, 256))
-        #(thresh, blackAndWhiteImage) = cv2.threshold(img, 35, 175, cv2.THRESH_BINARY_INV)
-        #print(f'final_shape: {croppedImage.shape}')
-        return croppedImage / 255
+        croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
+        #Add a red bar strategically for no fucking reason
+        img = cv2.resize(croppedImage, None, fx=0.5, fy=1, interpolation=cv2.INTER_AREA)
+        cv2.line(img, (0,80), (582, 80), (0,0,255), 12)
+        return img[:, :, 0] / 255
 
     def get_target(self, img_path, video_num) -> list:
         target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
