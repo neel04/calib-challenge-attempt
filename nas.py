@@ -28,7 +28,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE, scalar=1000)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE, scalar=1000)
 
@@ -41,7 +41,7 @@ model = ak.ImageRegressor(
     loss="mean_squared_error",
     metrics=[MAPEMetric],
     project_name="image_regressor",
-    max_trials=150,
+    max_trials=100,
     objective="val_loss",
     overwrite=False,
     directory='/kaggle/working/calib-challenge-attempt/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
@@ -73,14 +73,14 @@ def val_gen_data_generator():
         if tf_val_ds.__getitem__(i) is not None:
             yield tf_val_ds.__getitem__(i)
             
-print(f'Produced sample shape: {tf_train_ds.__getitem__(2)[0].shape}')
+print(f'Produced sample shape: {tf_train_ds.__getitem__(1)[0].shape}')
 
 training =  tf.data.Dataset.from_generator(train_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 237, 1164, 3), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 337, 582), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32))).prefetch(tf.data.AUTOTUNE)
 
 validation =  tf.data.Dataset.from_generator(val_gen_data_generator, output_signature=(
-        tf.TensorSpec(shape=(None, 237, 1164, 3), dtype=tf.float32),
+        tf.TensorSpec(shape=(None, 337, 582), dtype=tf.float32),
         tf.TensorSpec(shape=(None, 2), dtype=tf.float32))).prefetch(tf.data.AUTOTUNE)
 
 #WANDB logging
