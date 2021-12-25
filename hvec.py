@@ -44,6 +44,6 @@ def nan_i_nator(base_path, files):
     with open(f'{base_path}/{file}.txt', 'w') as outfile:
       outfile.write("\n".join(str(item) for item in cleaned))
 
-    print(f'cleaned {len(idxes} NaNs in {file}!')
+    print(f'cleaned {len(idxes)} NaNs in {file}!')
     
     [execute_shell(f'rm /content/calib-challenge-attempt/data_{file}/{i}.jpg') for i in idxes]
