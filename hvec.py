@@ -12,21 +12,31 @@ def hevc_to_frames(sample_num, out_folder):
     execute_shell(f'mkdir {out_folder}')
 
   vidcap = cv2.VideoCapture(f'/content/calib-challenge-attempt/calib_challenge/labeled/{sample_num}.hevc')   # sample_num --> int
+  lines = open(f'/content/calib-challenge-attempt/calib_challenge/labeled/{sample_num}.txt').readlines()
 
   success, image = vidcap.read()
   
   count = 0
-  
+  cleaned = []
+
   while success:
     success, image = vidcap.read()
 
     if not success:
       break
-      
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    cv2.imwrite(f"./{out_folder}/{count}.jpg", image)     # save frame as JPEG file
+    
+    if "nan" in lines[count+1]:
+      count += 1
+      continue
+    else:
+      cleaned.append(lines[count+1])
+      image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+      cv2.imwrite(f"./{out_folder}/{count}.jpg", image)     # save frame as JPEG file
     count += 1
   
+  # writes the non-NANed file
+  with open(f'/content/calib-challenge-attempt/calib_challenge/labeled/{sample_num}.txt', 'w') as outfile:
+      outfile.write("\n".join(str(item) for item in cleaned))
   #print(f'{sample_num} has been completed')
 
 def nan_i_nator(base_path, files):
