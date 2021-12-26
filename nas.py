@@ -43,7 +43,7 @@ output_node2 = ak.ResNetBlock()(output_node)
 output_node = ak.Merge()([output_node1, output_node2])
 output_node = ak.RegressionHead(output_dim=2)(output_node)
 
-auto_model = ak.AutoModel(
+model = ak.AutoModel(
     inputs=input_node, outputs=output_node,loss="mean_squared_error",
     metrics=[MAPEMetric],
     project_name="image_regressor",
