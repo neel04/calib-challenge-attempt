@@ -1,4 +1,3 @@
-%%writefile calib-challenge-attempt/nas.py
 from calib_dataset import SequenceGenerator
 from hvec import execute_shell, hevc_to_frames, nan_i_nator
 
