@@ -1,3 +1,4 @@
+%%writefile calib-challenge-attempt/nas.py
 from calib_dataset import SequenceGenerator
 from hvec import execute_shell, hevc_to_frames, nan_i_nator
 
@@ -36,6 +37,25 @@ tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], ba
 def MAPEMetric(target, output):
         return tf.math.reduce_mean(tf.math.abs((output - target) / output)) * 100
 
+input_node = ak.ImageInput()
+output_node = ak.Normalization()(input_node)
+output_node1 = ak.ConvBlock()(output_node)
+output_node2 = ak.ResNetBlock()(output_node)
+output_node = ak.Merge()([output_node1, output_node2])
+output_node = ak.RegressionHead(output_dim=2)(output_node)
+
+auto_model = ak.AutoModel(
+    inputs=input_node, outputs=output_node,loss="mean_squared_error",
+    metrics=[MAPEMetric],
+    project_name="image_regressor",
+    max_trials=100,
+    objective="val_loss",
+    overwrite=False,
+    directory='/kaggle/working/calib-challenge-attempt/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
+    seed=42
+)
+
+'''
 model = ak.ImageRegressor(
     output_dim=2,
     loss="mean_squared_error",
@@ -47,16 +67,6 @@ model = ak.ImageRegressor(
     directory='/kaggle/working/calib-challenge-attempt/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
     seed=42
     )
-'''
-model = ak.AutoModel(
-    inputs=[ak.ImageInput()],
-    outputs=[
-        ak.RegressionHead(metrics=["mae"], output_dim=2),
-        ],
-    overwrite=True,
-    max_trials=1,
-    seed=69420
-)
 '''
 # Fit the model with prepared data.
 
