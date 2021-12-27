@@ -28,7 +28,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE, scalar=10000)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE, scalar=10000)
 
@@ -39,10 +39,10 @@ def MAPEMetric(target, output):
 input_node = ak.ImageInput()
 output_node = ak.Normalization()(input_node)
 output_node1 = ak.ConvBlock()(output_node)
-output_node2 = ak.DenseBlock()(output_node1)
+#output_node2 = ak.DenseBlock()(output_node1)
 #output_node2 = ak.ResNetBlock()(output_node)
 #output_node = ak.Merge()([output_node1, output_node2])
-output_node = ak.RegressionHead(output_dim=2)(output_node2)
+output_node = ak.RegressionHead(output_dim=2)(output_node1)
 
 model = ak.AutoModel(
     inputs=input_node, outputs=output_node,
