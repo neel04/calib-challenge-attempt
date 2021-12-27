@@ -39,12 +39,14 @@ def MAPEMetric(target, output):
 input_node = ak.ImageInput()
 output_node = ak.Normalization()(input_node)
 output_node1 = ak.ConvBlock()(output_node)
-output_node2 = ak.ResNetBlock()(output_node)
-output_node = ak.Merge()([output_node1, output_node2])
-output_node = ak.RegressionHead(output_dim=2)(output_node)
+output_node2 = ak.DenseBlock()(output_node1)
+#output_node2 = ak.ResNetBlock()(output_node)
+#output_node = ak.Merge()([output_node1, output_node2])
+output_node = ak.RegressionHead(output_dim=2)(output_node2)
 
 model = ak.AutoModel(
-    inputs=input_node, outputs=output_node,loss="mean_squared_error",
+    inputs=input_node, outputs=output_node,
+    loss="mean_absolute_error",
     metrics=[MAPEMetric],
     project_name="image_regressor",
     max_trials=100,
