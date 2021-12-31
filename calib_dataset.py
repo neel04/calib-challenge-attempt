@@ -74,7 +74,7 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         #Add a red bar strategically for no fucking reason
         img = cv2.resize(croppedImage, None, fx=0.5, fy=1, interpolation=cv2.INTER_AREA)
         #cv2.line(img, (0,80), (582, 80), (0,0,255), 12)
-        return img / 255 # ==> B&W
+        return img[:, :, 0] / 255 # ==> B&W
 
     def get_target(self, img_path, video_num) -> list:
         target_file = open(f"/content/calib-challenge-attempt/calib_challenge/labeled/{video_num}.txt", "r")
