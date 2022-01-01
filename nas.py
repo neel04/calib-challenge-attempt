@@ -109,7 +109,6 @@ EStop = tf.keras.callbacks.EarlyStopping(
     monitor='MAPEMetric', min_delta=2, patience=3, verbose=0, mode="min", baseline=100, #baseline is 100
     restore_best_weights=True)
 
-WandbCB = WandbCallback(input_type='images', monitor="val_loss", verbose=0, mode="min",
-                        validation_steps=1, predictions=1, log_weights=True, log_evaluation=True) 
+WandbCB = WandbCallback(input_type='images', verbose=0, validation_steps=1, log_evaluation=True. save_model=True) 
 
 model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCB, EStop])
