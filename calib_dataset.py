@@ -73,7 +73,7 @@ class SequenceGenerator(tf.keras.utils.Sequence):
         croppedImage = img[int(height/2)+100:height, 0:width] #this line crops
         #Add a red bar strategically for no fucking reason
         img = cv2.resize(croppedImage, None, fx=0.5, fy=1, interpolation=cv2.INTER_AREA)
-        #cv2.line(img, (0,80), (582, 80), (0,0,255), 12)
+        cv2.line(img, (0,80), (582, 80), (0,0,255), 12)
         return img[:, :, 0] / 255 # ==> B&W
 
     def get_target(self, img_path, video_num) -> list:
