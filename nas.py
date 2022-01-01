@@ -28,7 +28,7 @@ if not os.path.isdir('/content/calib-challenge-attempt/data_3'):
 
 print(f'\nData Processing Complete! HVEC --> JPG\n')
 #============================================================================================================
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 tf_train_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[0,1,4,3], batch_size=BATCH_SIZE, scalar=10000)
 tf_val_ds = SequenceGenerator('/content/calib-challenge-attempt/', files=[2], batch_size=BATCH_SIZE, scalar=10000)
 
@@ -49,7 +49,7 @@ model = ak.AutoModel(
     loss="mean_absolute_error",
     metrics=[MAPEMetric],
     project_name="image_regressor",
-    max_trials=100,
+    max_trials=25,
     objective="val_loss",
     overwrite=False,
     directory='/kaggle/working/calib-challenge-attempt/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
@@ -109,4 +109,7 @@ EStop = tf.keras.callbacks.EarlyStopping(
     monitor='MAPEMetric', min_delta=2, patience=3, verbose=0, mode="min", baseline=100, #baseline is 100
     restore_best_weights=True)
 
-model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCallback(), EStop])
+WandbCB = WandbCallback(input_type='images', monitor="val_loss", verbose=0, mode="min",
+                        validation_steps=1, predictions=1, log_weights=True, log_evaluation=True) 
+
+model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCB, EStop])
