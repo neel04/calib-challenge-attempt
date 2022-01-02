@@ -52,7 +52,7 @@ model = ak.AutoModel(
     max_trials=25,
     objective="val_loss",
     overwrite=False,
-    directory='/kaggle/working/calib-challenge-attempt/image_regressor/',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
+    directory='/kaggle/working/calib-challenge-attempt/image_regressor',    #Directory to sync progress @ cloud| /content/drive/MyDrive/Comma_AI/
     seed=42
 )
 
