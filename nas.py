@@ -111,4 +111,13 @@ EStop = tf.keras.callbacks.EarlyStopping(
 
 WandbCB = WandbCallback(log_evaluation=True, save_model=True)
 
-model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCB, EStop])
+CHKPcallback = tf.keras.callbacks.ModelCheckpoint(
+    '/content/drive/MyDrive/Comma_AI/checkpoints',
+    monitor="val_loss",
+    verbose=0,
+    save_best_only=True,
+    mode="min",
+    save_freq="epoch"
+)
+
+model.fit(x=training, validation_data=validation, batch_size=BATCH_SIZE, shuffle=True, callbacks=[WandbCB, EStop, CHKPcallback])
