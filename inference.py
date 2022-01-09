@@ -52,7 +52,7 @@ def preprocess(image):
   #Add a red bar strategically for no fucking reason
   img = cv2.resize(croppedImage, None, fx=0.5, fy=1, interpolation=cv2.INTER_AREA)
   img = cv2.line(img, (0,80), (582, 80), (0,0,255), 12)
-  return img[:, :, 0] / 255 # ==> B&W
+  return img / 255 # ==> B&W {[:, :, 0]}
 
 #Compute the predictions
 for index in tqdm.tqdm(range(5,10)):
